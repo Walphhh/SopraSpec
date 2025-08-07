@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "dev": "concurrently \"cd sopra-spec-backend && npm run dev\" \"cd sopra-spec-frontend && npm run dev\""
+  },
+  "dependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
