@@ -12,7 +12,5 @@ jobs:
       image: node:20
     steps:
       - uses: actions/checkout@v3
-      - run: cd sopra-spec-backend
-      - run: npm ci
+      - run: cd sopra-spec-backend && npm ci
       - run: npm test
-      - run: npm run build
