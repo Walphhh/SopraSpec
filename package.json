@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "concurrently \"cd sopra-spec-backend && npm run dev\" \"cd sopra-spec-frontend && npm run dev\"",
+    "test": "cd sopra-spec-backend && npm test",
     "dev:frontend": "cd sopra-spec-frontend && npm run dev",
     "dev:backend": "cd sopra-spec-backend && npm run dev"
   },
