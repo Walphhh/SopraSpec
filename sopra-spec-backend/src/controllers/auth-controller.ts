@@ -14,8 +14,6 @@ const Auth = {
   signInWithPassword: async (req: Request, res: Response) => {
     if (req.body && typeof req.body === "object") {
       const { email, password } = req.body;
-      console.log("Received email:", email);
-      console.log("Received password:", password);
 
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -36,7 +34,6 @@ const Auth = {
 
         return res.status(Status.SUCCESS).json({ message: "Login successful" });
       } catch (error) {
-        console.error("Error during sign-in:", error);
         return res
           .status(Status.INTERNAL_SERVER_ERROR)
           .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
@@ -58,13 +55,19 @@ const Auth = {
     try {
       const loggedOut = await supabase.auth.signOut(); // could probably benefit from a better variable name
       if (loggedOut.error) {
-        return res.status(401).json({ error: loggedOut.error.message });
+        return res
+          .status(Status.UNAUTHORIZED)
+          .json({ error: loggedOut.error.message });
       } else {
-        return res.status(201).json({ message: "Logout successful" });
+        console.log(loggedOut);
+        return res
+          .status(Status.SUCCESS)
+          .json({ message: "Logout successful" });
       }
     } catch (error) {
-      console.error("Error during logout:", error);
-      return res.status(501).json({ error: "Internal server error" });
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
     }
   },
 };
