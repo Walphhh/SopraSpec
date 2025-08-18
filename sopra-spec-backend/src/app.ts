@@ -14,7 +14,7 @@ app.use(express.json());
 app.use("/api/auth", authRouter);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to the SopraSpec Backend API");
+  res.send("Welcome to the SopraSpec Backend API!");
 });
 
 export default app;
