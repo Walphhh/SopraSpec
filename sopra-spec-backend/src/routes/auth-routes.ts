@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { signInWithPassword, logout } from "../controllers/auth-controller";
+import Auth from "../controllers/auth-controller";
 
 const router = Router();
 
-router.post("/login/email-password", signInWithPassword);
-router.post("/logout", logout);
+router.post("/login/email-password", Auth.signInWithPassword);
+router.post("/logout", Auth.logout);
 
 export default router;
