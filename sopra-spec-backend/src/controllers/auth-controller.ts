@@ -1,55 +1,72 @@
+import { getStatusMessage, Status } from "@src/utils/status-codes";
 import supabase from "../config/supabase-client";
 import { Request, Response } from "express";
 
-/**
- *
- * @param req
- * @param res
- * @returns
- */
-export const signInWithPassword = async (req: Request, res: Response) => {
-  if (req.body && typeof req.body === "object") {
-    const { email, password } = req.body;
-    console.log("Received email:", email);
-    console.log("Received password:", password);
+//TODO: Fill in the documentation for the methods below
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+const Auth = {
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns
+   */
+  signInWithPassword: async (req: Request, res: Response) => {
+    if (req.body && typeof req.body === "object") {
+      const { email, password } = req.body;
+      console.log("Received email:", email);
+      console.log("Received password:", password);
 
-      // Check for empty email or password
-      if (!email || !password) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
+
+        // Check for empty email or password
+        if (!email || !password) {
+          return res
+            .status(Status.BAD_REQUEST)
+            .json({ error: "Email and password are required" });
+        }
+
+        if (error) {
+          return res.status(Status.BAD_REQUEST).json({ error: error.message });
+        }
+
+        return res.status(Status.SUCCESS).json({ message: "Login successful" });
+      } catch (error) {
+        console.error("Error during sign-in:", error);
         return res
-          .status(400)
-          .json({ error: "Email and password are required" });
+          .status(Status.INTERNAL_SERVER_ERROR)
+          .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
       }
-
-      if (error) {
-        return res.status(400).json({ error: error.message });
-      }
-
-      return res.status(200).json({ message: "Login successful" });
-    } catch (error) {
-      console.error("Error during sign-in:", error);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  } else {
-    return res.status(400).json({ error: "invalid request body" });
-  }
-};
-
-export const logout = async (req: Request, res: Response) => {
-  try {
-    const loggedOut = await supabase.auth.signOut(); // could probably benefit from a better variable name
-    if (loggedOut.error) {
-      return res.status(400).json({ error: loggedOut.error.message });
     } else {
-      return res.status(200).json({ message: "Logout successful" });
+      return res
+        .status(Status.BAD_REQUEST)
+        .json({ error: getStatusMessage(Status.BAD_REQUEST) });
     }
-  } catch (error) {
-    console.error("Error during logout:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
+  },
+
+  /**
+   *
+   * @param req
+   * @param res
+   * @returns
+   */
+  logout: async (req: Request, res: Response) => {
+    try {
+      const loggedOut = await supabase.auth.signOut(); // could probably benefit from a better variable name
+      if (loggedOut.error) {
+        return res.status(401).json({ error: loggedOut.error.message });
+      } else {
+        return res.status(201).json({ message: "Logout successful" });
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      return res.status(501).json({ error: "Internal server error" });
+    }
+  },
 };
+
+export default Auth;
