@@ -1,4 +1,4 @@
-name: Test Project
+name: Test Backend
 
 on:
   pull_request:
@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:20
+      env:
+        NODE_ENV: test
     steps:
       - uses: actions/checkout@v3
       - run: cd sopra-spec-backend && npm ci
