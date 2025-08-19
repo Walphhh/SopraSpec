@@ -1,0 +1,19 @@
+name: Test Build Backend
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    container:
+      image: node:20
+      env:
+        NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v3
+      - run: cd sopra-spec-backend && npm ci
+      - run: cd sopra-spec-backend && npm run build
+      - run: cd sopra-spec-backend && npm test
