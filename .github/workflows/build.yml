@@ -1,4 +1,4 @@
-name: Test Backend
+name: Test Build Backend
 
 on:
   pull_request:
@@ -15,4 +15,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: cd sopra-spec-backend && npm ci
-      - run: npm test
+      - run: cd sopra-spec-backend && npm run build
+      - run: cd sopra-spec-backend && npm test
