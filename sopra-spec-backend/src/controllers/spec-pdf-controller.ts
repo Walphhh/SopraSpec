@@ -12,9 +12,9 @@ export const generatePdf = async (req: Request, res: Response) => {
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=spec.pdf");
-    res.send(pdfBuffer);
+    res.send(pdfBuffer).status(Status.SUCCESS);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Failed to generate PDF");
+    res.status(Status.INTERNAL_SERVER_ERROR).send("Failed to generate PDF");
   }
 };
