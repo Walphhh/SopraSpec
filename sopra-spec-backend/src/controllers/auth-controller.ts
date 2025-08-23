@@ -3,7 +3,7 @@ import supabase from "../config/supabase-client";
 import { Request, Response } from "express";
 
 //TODO: Fill in the documentation for the methods below
-
+// We do not need to use a controller for this because it is being handled by the Supabase client directly.
 const Auth = {
   /**
    *
