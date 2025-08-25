@@ -1,6 +1,14 @@
 import pdfkit from "pdfkit";
 import BlobStream from "blob-stream";
 
+// TODO: Turn this into a proper service with error handling and logging
+// TODO: Modularise the PDF generation to make the spec generation more dynamic.
+
+interface System {
+  name: string;
+  description: string;
+  products: string[];
+}
 export const GenerateSpec = async (): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const doc = new pdfkit();
