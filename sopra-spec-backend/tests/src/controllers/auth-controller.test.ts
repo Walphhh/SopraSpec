@@ -28,7 +28,7 @@ describe("Sign In with Password test suite", () => {
 
   it("Should return status 200 on successful login", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: { user: { id: "123" } },
       error: null,
     });
 
@@ -48,7 +48,7 @@ describe("Sign In with Password test suite", () => {
 
   it("Should return status 400 if email is missing", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: { user: { id: "123" } },
       error: null,
     });
 
@@ -63,7 +63,7 @@ describe("Sign In with Password test suite", () => {
 
   it("Should return status 400 if password is missing", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: { user: { id: "123" } },
       error: null,
     });
 
@@ -78,7 +78,7 @@ describe("Sign In with Password test suite", () => {
 
   it("Should return status 400 if an error occurs", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: { user: { id: "123" } },
       error: true,
     });
 
