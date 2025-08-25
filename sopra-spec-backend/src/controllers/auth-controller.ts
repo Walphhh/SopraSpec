@@ -6,14 +6,21 @@ import { Request, Response } from "express";
 
 const Auth = {
   /**
-   *
+   * Sign in a user with email and password
    * @param req
    * @param res
-   * @returns
+   * @returns JWT token
    */
   signInWithPassword: async (req: Request, res: Response) => {
     if (req.body && typeof req.body === "object") {
       const { email, password } = req.body;
+      
+      // Check for empty email or password first
+      if (!email || !password) {
+        return res
+          .status(Status.BAD_REQUEST)
+          .json({ error: "Email and password are required" });
+      }
 
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -21,18 +28,16 @@ const Auth = {
           password: password,
         });
 
-        // Check for empty email or password
-        if (!email || !password) {
-          return res
-            .status(Status.BAD_REQUEST)
-            .json({ error: "Email and password are required" });
-        }
-
         if (error) {
           return res.status(Status.BAD_REQUEST).json({ error: error.message });
         }
-
-        return res.status(Status.SUCCESS).json({ message: "Login successful" });
+        // Return JWT token for subsequent requests that requires authentication
+        return res.status(Status.SUCCESS).json({ 
+          message: "Login successful",
+          token: data.session?.access_token,
+          refresh_token: data.session?.refresh_token,
+          user: data.user
+        });
       } catch (error) {
         return res
           .status(Status.INTERNAL_SERVER_ERROR)
