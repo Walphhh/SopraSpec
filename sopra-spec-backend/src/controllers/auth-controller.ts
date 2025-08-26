@@ -14,7 +14,7 @@ const Auth = {
   signInWithPassword: async (req: Request, res: Response) => {
     if (req.body && typeof req.body === "object") {
       const { email, password } = req.body;
-      
+
       // Check for empty email or password first
       if (!email || !password) {
         return res
@@ -32,11 +32,11 @@ const Auth = {
           return res.status(Status.BAD_REQUEST).json({ error: error.message });
         }
         // Return JWT token for subsequent requests that requires authentication
-        return res.status(Status.SUCCESS).json({ 
+        return res.status(Status.SUCCESS).json({
           message: "Login successful",
           token: data.session?.access_token,
           refresh_token: data.session?.refresh_token,
-          user: data.user
+          user: data.user,
         });
       } catch (error) {
         return res
@@ -80,14 +80,14 @@ const Auth = {
    * Sign up a user with email and password
    * @param req body { email, password, confirmPassword }
    * @param res
-   * @returns
+   * @returns { message, token, refresh_token, user }
    */
   signUpWithEmail: async (req: Request, res: Response) => {
     if (req.body && typeof req.body === "object") {
       const { email, password, confirmPassword } = req.body;
 
-      // Validate required field password and email 
-      if (!email || !password) { 
+      // Validate required field password and email
+      if (!email || !password) {
         return res
           .status(Status.BAD_REQUEST)
           .json({ error: "Enter email and password" });
@@ -97,39 +97,76 @@ const Auth = {
       if (!emailRegex.test(email)) {
         return res
           .status(Status.BAD_REQUEST)
-          .json({ error: "Please provide a valid email address"});
+          .json({ error: "Please provide a valid email address" });
       }
       // Validate password strength
-      if (password.length < 8) { 
+      if (password.length < 8) {
         return res
           .status(Status.BAD_REQUEST)
-          .json({ error: "Password must be at least 8 characters long"});
+          .json({ error: "Password must be at least 8 characters long" });
       }
       try {
-      // Sign up user in supabase
+        // Sign up user in supabase
         const { data, error } = await supabase.auth.signUp({
-          email: email, 
-          password: password
+          email: email,
+          password: password,
         });
 
         // Handling duplicate user error
-        if (error) { 
-          if (error.message.includes("User already registered")) { 
-            return res.status(Status.BAD_REQUEST).json({ error: "User already registered" });
+        if (error) {
+          if (error.message.includes("User already registered")) {
+            return res
+              .status(Status.BAD_REQUEST)
+              .json({ error: "User already registered" });
           }
           return res.status(Status.BAD_REQUEST).json({ error: error.message });
         }
 
-        // Disabled email confirmation -> return success message after sign up. 
-        return res.status(Status.SUCCESS).json({ 
-          message: "Sign up successful", 
+        // Disabled email confirmation -> return success message after sign up.
+        return res.status(Status.SUCCESS).json({
+          message: "Sign up successful",
           token: data.session?.access_token,
           refresh_token: data.session?.refresh_token,
-          user: data.user
-        })
+          user: data.user,
+        });
       } catch (error) {
-        return res.status(Status.INTERNAL_SERVER_ERROR).json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+        return res
+          .status(Status.INTERNAL_SERVER_ERROR)
+          .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
       }
+    }
+  },
+  /**
+   * Refresh the JWT access token using a refresh token to keep users log in after current token expired
+   * @param req Express Request object required { refresh_token }
+   * @param res Express Response object 
+   * @returns JSON response with new tokens { message, token, refresh_token }
+   */
+  refreshToken: async (req: Request, res: Response) => {
+    const { refresh_token } = req.body;
+
+    if (!refresh_token) {
+      return res
+        .status(Status.BAD_REQUEST)
+        .json({ error: "Missing refresh token" });
+    }
+
+    try {
+      const { data, error } = await supabase.auth.refreshSession({
+        refresh_token,
+      });
+      if (error) {
+        return res.status(Status.UNAUTHORIZED).json({ error: error.message });
+      }
+      return res.status(Status.SUCCESS).json({
+        message: "Token refreshed successfully",
+        token: data.session?.access_token,
+        refresh_token: data.session?.refresh_token,
+      });
+    } catch (error) {
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
     }
   },
 };
