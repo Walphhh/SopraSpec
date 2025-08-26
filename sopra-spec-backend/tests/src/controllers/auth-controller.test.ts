@@ -28,27 +28,56 @@ describe("Sign In with Password test suite", () => {
 
   it("Should return status 200 on successful login", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: {
+        session: {
+          access_token: "fake-token",
+          refresh_token: "fake-refresh-token",
+        },
+        user: {
+          id: "342f9587-dbc3-4664-848c-b685e4ffbc60",
+          email: "ttduc002@yahoo.com",
+          role: "authenticated",
+        },
+      },
       error: null,
     });
 
-    const req = mockRequest({ email: "test@example.com", password: "test" });
+    const req = mockRequest({ email: "ttduc002@yahoo.com", password: "abc123" });
     const res = mockResponse();
 
     await Auth.signInWithPassword(req, res);
 
     expect(res.status).toHaveBeenCalledTimes(1);
     expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
-      email: "test@example.com",
-      password: "test",
+      email: "ttduc002@yahoo.com",
+      password: "abc123",
     });
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ message: "Login successful" });
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Login successful",
+      token: "fake-token",
+      refresh_token: "fake-refresh-token",
+      user: {
+        id: "342f9587-dbc3-4664-848c-b685e4ffbc60",
+        email: "ttduc002@yahoo.com",
+        role: "authenticated",
+      },
+    });
   });
 
   it("Should return status 400 if email is missing", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: {
+        session: {
+          access_token: "fake-token",
+          refresh_token: "fake-refresh-token",
+        },
+        user: {
+          id: "342f9587-dbc3-4664-848c-b685e4ffbc60",
+          email: "ttduc002@yahoo.com",
+          role: "authenticated",
+        },
+      },
       error: null,
     });
 
@@ -63,7 +92,17 @@ describe("Sign In with Password test suite", () => {
 
   it("Should return status 400 if password is missing", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
+      data: {
+        session: {
+          access_token: "fake-token",
+          refresh_token: "fake-refresh-token",
+        },
+        user: {
+          id: "342f9587-dbc3-4664-848c-b685e4ffbc60",
+          email: "ttduc002@yahoo.com",
+          role: "authenticated",
+        },
+      },
       error: null,
     });
 
@@ -73,13 +112,23 @@ describe("Sign In with Password test suite", () => {
     await Auth.signInWithPassword(req, res);
 
     expect(res.status).toHaveBeenCalledTimes(1);
-    expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
+    expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST); 
   });
 
   it("Should return status 400 if an error occurs", async () => {
     (supabase.auth.signInWithPassword as jest.Mock).mockResolvedValue({
-      data: { user: { id: "123" } }, // I actually don't know what the return value's structure looks like 💀
-      error: true,
+      data: {
+        session: {
+          access_token: "fake-token",
+          refresh_token: "fake-refresh-token",
+        },
+        user: {
+          id: "342f9587-dbc3-4664-848c-b685e4ffbc60",
+          email: "ttduc002@yahoo.com",
+          role: "authenticated",
+        },
+      },
+      error: { message: "Invalid credentials" },
     });
 
     const req = mockRequest({ email: "test@mail.com", password: "test" });
