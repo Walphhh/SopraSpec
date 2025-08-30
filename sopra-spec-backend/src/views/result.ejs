@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result</title>
+</head>
+
+<body>
+    <h1>Roof System Specification</h1>
+
+    <div style="max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif;">
+        <h2>Your Selection:</h2>
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <ul style="list-style: none; padding: 0;">
+                <li><strong>System:</strong>
+                    <%= choices.system %>
+                </li>
+                <li><strong>Area:</strong>
+                    <%= choices.area %>
+                </li>
+                <li><strong>Type:</strong>
+                    <%= choices.type %>
+                </li>
+                <li><strong>Substrate:</strong>
+                    <%= choices.substrate %>
+                </li>
+                <li><strong>Membrane:</strong>
+                    <%= choices.membrane %>
+                </li>
+                <li><strong>Insulation:</strong>
+                    <%= choices.insulation %>
+                </li>
+                <li><strong>Exposure:</strong>
+                    <%= choices.exposure %>
+                </li>
+                <li><strong>Installation:</strong>
+                    <%= choices.installation %>
+                </li>
+            </ul>
+        </div>
+
+        <% if (result.success) { %>
+            <h2>Recommended System: <%= result.specification.system_id %>
+            </h2>
+
+            <h3>Installation Sequence:</h3>
+            <div style="border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                <% result.specification.products.forEach((product, index)=> { %>
+                    <div
+                        style="padding: 15px; <%= index % 2 === 0 ? 'background-color: #f9f9f9;' : '' %> border-bottom: 1px solid #eee;">
+                        <h4 style="margin: 0 0 10px 0; color: #333;">
+                            Layer <%= product.layer %>: <%= product.product_name %>
+                        </h4>
+                        <p style="margin: 5px 0;"><strong>Product Code:</strong>
+                            <%= product.product_code %>
+                        </p>
+                        <p style="margin: 5px 0;"><strong>Type:</strong>
+                            <%= product.product_type %>
+                        </p>
+                        <p style="margin: 5px 0;"><strong>Application:</strong>
+                            <%= product.application_method %>
+                        </p>
+
+                        <% if (product.notes && product.notes.length> 0) { %>
+                            <p style="margin: 10px 0 5px 0;"><strong>Installation Notes:</strong></p>
+                            <ul style="margin: 0; color: #666;">
+                                <% product.notes.forEach(note=> { %>
+                                    <li>
+                                        <%= note %>
+                                    </li>
+                                    <% }) %>
+                            </ul>
+                            <% } %>
+
+                                <% if (result.products) { %>
+                                    <% const productDetails=result.products.find(p=> p.code === product.product_code) %>
+                                        <% if (productDetails && productDetails.description) { %>
+                                            <p style="margin: 10px 0 0 0; font-style: italic; color: #555;">
+                                                <%= productDetails.description %>
+                                            </p>
+                                            <% } %>
+                                                <% } %>
+                    </div>
+                    <% }) %>
+            </div>
+
+            <% if (result.products && result.products.length> 0) { %>
+                <h3>Product Details:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr style="background-color: #f0f0f0;">
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Product Code</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Type</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% result.products.forEach(product=> { %>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                    <%= product.code %>
+                                </td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                    <%= product.name %>
+                                </td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                    <%= product.type %>
+                                </td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">
+                                    <%= product.category %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+                <% } %>
+                    <% } else { %>
+                        <div
+                            style="background-color: #ffebee; border: 1px solid #f44336; padding: 15px; border-radius: 5px; color: #d32f2f;">
+                            <h2>No Matching System Found</h2>
+                            <p>
+                                <%= result.error %>
+                            </p>
+                            <p>Please try different selections or contact our technical support team.</p>
+                        </div>
+                        <% } %>
+
+                            <div style="margin-top: 30px; text-align: center;">
+                                <a href="/system">
+                                    Start New Selection
+                                </a>
+                            </div>
+    </div>
+</body>
+
+</html>

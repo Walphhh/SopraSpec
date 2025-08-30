@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+</head>
+
+<body>
+    <form method="POST" action="/api/selection/type">
+        <div>
+            <button type="submit" name="type" value="new_build" >
+                New Build
+            </button>
+            <button type="submit" name="type" value="refurbishment">
+                Refurbishment
+            </button>
+        </div>
+    </form>
+</body>
+
+</html>
