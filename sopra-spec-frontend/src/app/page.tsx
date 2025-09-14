@@ -1,12 +1,12 @@
-import "./globals.css"; // make sure Tailwind is loaded
+import "./globals.css" // make sure Tailwind is loaded
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">
+      <body>
         {/* Page content goes here */}
-        <main className="p-6">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
-  );
+  )
 }

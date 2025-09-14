@@ -16,7 +16,7 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="bg-white px-6 py-3 flex items-center">
+    <nav className="bg-white px-6 py-3 flex items-center" aria-label="NavBar">
       {/* Left: Logo */}
       <Link href="/" className="flex items-center space-x-2">
         <Image
@@ -24,22 +24,25 @@ export default function Navbar() {
           alt="SOPREMA Logo"
           width={200}
           height={57}
+          priority
         />
       </Link>
 
       {/* Right: Navigation Tabs */}
-      <div className="ml-auto flex space-x-6">
+      <div className="ml-auto flex space-x-6 font-extrabold">
         {links.map((link) => {
-          const isActive = pathname === link.href;
+          {/* Highlight if pathname contains the href (including the sub-pages) */}
+          const isActive = link.href === "/"
+            ? pathname === "/"
+            : pathname.startsWith(link.href)
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`font-medium ${
-                isActive
-                  ? "text-[#0072CE] font-extrabold text-[18px] hover:underline"   // current page
-                  : "text-[#7C878E] font-extrabold text-[18px] hover:underline" // normal links
-              }`}
+              className={`font-medium ${isActive
+                  ? "text-[#0072CE] text-[18px] hover:underline"   // active tab
+                  : "text-[#7C878E] text-[18px] hover:underline" // inactive tabs
+                }`}
             >
               {link.name}
             </Link>
