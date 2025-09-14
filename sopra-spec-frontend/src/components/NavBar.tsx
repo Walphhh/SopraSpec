@@ -9,14 +9,14 @@ export default function Navbar() {
 
   const links = [
     { name: "Home", href: "/" },
-    { name: "Products", href: "/products" },
+    { name: "Systems", href: "/systems" },
     { name: "Specification Generator", href: "/specification-generator" },
     { name: "Site Analysis", href: "/site-analysis" },
     { name: "My Account", href: "/my-account" },
   ]
 
   return (
-    <nav className="bg-white px-6 py-3 flex items-center" aria-label="NavBar">
+    <nav className="px-6 py-3 flex items-center" aria-label="NavBar">
       {/* Left: Logo */}
       <Link href="/" className="flex items-center space-x-2">
         <Image
