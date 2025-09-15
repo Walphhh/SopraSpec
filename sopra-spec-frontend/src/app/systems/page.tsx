@@ -7,8 +7,8 @@ export default function ProductsPage() {
     const distributors = [
         {
             name: "Allduro",
-            href: "/products/allduro",
-            logo: "/logo-allduro.png",
+            href: "/systems/allduro",
+            logo: "/logos/logo-allduro.png",
             overview: "Western Australia’s leading supplier of waterproofing, concrete repair, floor coatings, joint sealants, and tiling solutions for new builds and remediation.",
             headquarter: "14 Vulcan Road Canning Vale WA 6155.",
             backgroundColor: "#F4E2DC",
@@ -16,8 +16,8 @@ export default function ProductsPage() {
         },
         {
             name: "Bayset",
-            href: "/products/bayset",
-            logo: "/logo-bayset.webp",
+            href: "/systems/bayset",
+            logo: "/logos/logo-bayset.webp",
             overview: "An Australian family-owned brand with 20+ years of experience designing waterproofing systems for balconies, roofs, wet areas, and below-ground structures.",
             headquarter: "48 Weaver Street, Coopers Plains QLD 4108.",
             backgroundColor: "#EBD1D9",
@@ -25,8 +25,8 @@ export default function ProductsPage() {
         },
         {
             name: "Enduroflex",
-            href: "/products/enduroflex",
-            logo: "/logo-enduroflex.webp",
+            href: "/systems/enduroflex",
+            logo: "/logos/logo-enduroflex.webp",
             overview: "Australia’s top provider of insulation and waterproofing solutions for residential, commercial, and infrastructure projects, supporting energy efficiency and compliance.",
             headquarter: "16/5 Ponderosa Parade, Warriewood NSW 2102.",
             backgroundColor: "#E0E4DC",
@@ -43,7 +43,10 @@ export default function ProductsPage() {
                     <Link key={dist.name} href={dist.href}>
                         <div
                             className="distributor-card"
-                            style={{ backgroundColor: dist.backgroundColor }}
+                            style={{ 
+                                backgroundColor: dist.backgroundColor,
+                                ["--dist-color" as any]: dist.color,
+                            }}
                         >
                             {/* Logo */}
                             <div className="flex justify-center mb-4">
@@ -52,7 +55,7 @@ export default function ProductsPage() {
                                     alt={`${dist.name} logo`}
                                     width={300}
                                     height={60}
-                                    className="object-contain"
+                                    className="w-[300px] h-[60px] object-contain"
                                 />
                             </div>
 

@@ -50,5 +50,5 @@ p {
 }
 
 .distributor-card:hover {
-  border-color: #0072CE; /* fallback color */
+  border-color: var(--dist-color) 
 }

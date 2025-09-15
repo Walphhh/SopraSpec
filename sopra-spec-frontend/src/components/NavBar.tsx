@@ -20,7 +20,7 @@ export default function Navbar() {
       {/* Left: Logo */}
       <Link href="/" className="flex items-center space-x-2">
         <Image
-          src="/logo-soprema.png"
+          src="/logos/logo-soprema.png"
           alt="SOPREMA Logo"
           width={200}
           height={57}
