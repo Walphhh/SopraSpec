@@ -29,19 +29,19 @@ export default function Navbar() {
       </Link>
 
       {/* Right: Navigation Tabs */}
-      <div className="ml-auto flex space-x-6 font-extrabold">
+      <div className="ml-auto flex space-x-6">
         {links.map((link) => {
           {/* Highlight if pathname contains the href (including the sub-pages) */}
           const isActive = link.href === "/"
             ? pathname === "/"
-            : pathname.startsWith(link.href)
+            : pathname.includes(link.href)
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`font-medium ${isActive
-                  ? "text-[#0072CE] text-[18px] hover:underline"   // active tab
-                  : "text-[#7C878E] text-[18px] hover:underline" // inactive tabs
+              className={`text-[19px] font-semibold hover:underline ${isActive
+                  ? "text-[#0072CE]"   // active tab
+                  : "text-[#7C878E]" // inactive tabs
                 }`}
             >
               {link.name}

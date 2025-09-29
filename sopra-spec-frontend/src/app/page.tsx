@@ -36,8 +36,8 @@ export default function HomePage() {
             project={project}
             onClick={() =>
               project.isNew
-                ? router.push("/specification")
-                : router.push(`/projects/${project.id}/specification`)
+                ? router.push("/specification-generator")
+                : router.push(`/projects/${project.id}/specification-generator`)
             }
           />
         ))}
