@@ -1,10 +1,14 @@
-import { systemTree, TreeNode } from "@/lib/systemTree"
-import Image from "next/image"
-import Link from "next/link"
-import OptionCard from "@/components/OptionCard"
+"use client"
 
-export default async function SystemTreePage({ params }: { params: Promise<{ path?: string[] }> }) {
-    const { path = [] } = await params
+import Image from "next/image";
+import { use } from "react";
+
+import { systemTree, TreeNode } from "@/lib/systemTree"
+import OptionCard from "@/components/OptionCard"
+import ProjectDropdownButton from "@/components/ProjectDropDownButton";
+
+export default function SystemTreePage({ params }: { params: Promise<{ path?: string[] }> }) {
+    const { path = [] } = use(params);
 
     // Traverse systemTree based on path
     let node: any = systemTree
@@ -45,7 +49,7 @@ export default async function SystemTreePage({ params }: { params: Promise<{ pat
                 {node.description || "Choose the system, select the products, and generate Product Specifications"}
             </h4>
 
-            {/* If node has children → render clickable cards */}
+            {/* If node has children -> render clickable cards */}
             {node.options ? (
                 <div
                     className={
@@ -75,6 +79,9 @@ export default async function SystemTreePage({ params }: { params: Promise<{ pat
                 // Leaf node
                 <div>
                     <p className="text-[#7C878E] flex justify-center">Systems Listed Here</p>
+
+                    {/* Get List of Projects from the Database later */}
+                    <ProjectDropdownButton projects={["Project A", "Project B", "Project C"]} /> 
                 </div>
             )}
         </div>
