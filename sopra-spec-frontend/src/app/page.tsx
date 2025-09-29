@@ -7,18 +7,15 @@ import ProjectCard from "@/components/ProjectCard"
 import { Project, mockProjects } from "@/lib/project"
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>(mockProjects) // Change to integrate with the database later
   const router = useRouter()
 
   /* Integrate with the database later */
-  useEffect(() => {
-    fetch("/api/projects")
-      .then((res) => res.json())
-      .then(setProjects)
-      .catch(() => {
-        setProjects(mockProjects)
-      })
-  }, [])
+  // useEffect(() => {
+  //   fetch("/api/projects")
+  //     .then((res) => res.json())
+  //     .then(setProjects)
+  // }, [])
 
   // Add default "New Project" card
   const allProjects: Project[] = [
