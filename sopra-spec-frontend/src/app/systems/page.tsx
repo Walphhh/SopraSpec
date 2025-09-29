@@ -17,5 +17,5 @@ export default function SystemsPage() {
         ))}
       </div>
     </div>
-  );
+  )
 }
