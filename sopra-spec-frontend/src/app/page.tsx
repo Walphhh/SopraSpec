@@ -7,7 +7,7 @@ import ProjectCard from "@/components/ProjectCard"
 import { Project, mockProjects } from "@/lib/project"
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>([]) 
+  const [projects, setProjects] = useState<Project[]>([])
   const router = useRouter()
 
   /* Integrate with the database later */
@@ -28,20 +28,27 @@ export default function HomePage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">All Projects</h1>
+      <h1 className="text-2xl font-bold mb-4">Welcome to SopraSpec</h1>
+      <h4 className="mb-10">Start by Browsing our Systems and Generating Product Specifications</h4>
+
       <div className="flex flex-wrap justify-center gap-x-[30px] gap-y-[30px]">
         {allProjects.map((project) => (
           <ProjectCard
             key={project.id}
             project={project}
             onClick={() =>
-              project.isNew
-                ? router.push("/specification-generator")
-                : router.push(`/projects/${project.id}/specification-generator`)
+              router.push(`/specification-generator/${project.isNew ? 'new' : project.id}/project-details`)
             }
           />
         ))}
       </div>
+
+      <button
+        className="px-6 py-3 mt-10 bg-[#7C878E] text-white font-bold rounded hover:bg-[#0072CE] transition"
+        onClick={() => router.push("/systems")}
+      >
+        Browse Systems
+      </button>
     </div>
   )
 }

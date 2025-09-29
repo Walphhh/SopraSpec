@@ -11,7 +11,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navbar /> {/* Navbar appears on every page */}
-        <Breadcrumb /> {/* Breadcrumb right under the Navbar */}
         <main>{children}</main>
       </body>
     </html>
