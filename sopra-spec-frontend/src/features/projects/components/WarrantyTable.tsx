@@ -1,4 +1,5 @@
 'use client';
+
 type Row = { id: string; productName: string; warrantyUrl?: string };
 
 const mock: Row[] = [
@@ -10,7 +11,7 @@ export default function WarrantyTable() {
   return (
     <table className="w-full border-collapse">
       <thead>
-        <tr className="text-left border-b">
+        <tr className="border-b text-left">
           <th className="p-2">Product</th>
           <th className="p-2">Actions</th>
         </tr>
