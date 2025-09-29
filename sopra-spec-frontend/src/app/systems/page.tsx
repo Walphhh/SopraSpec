@@ -1,14 +1,14 @@
-"use client";
+"use client"
 
-import { distributors } from "@/lib/distributors";
-import DistributorCard from "@/components/DistributorCard";
+import { distributors } from "@/lib/distributors"
+import DistributorCard from "@/components/DistributorCard"
 
 export default function SystemsPage() {
   return (
     <div>
-      <h1>Explore SOPREMA Systems & Generate Product Specifications</h1>
+      <h1>Explore SOPREMA Systems</h1>
       <h4>
-        Choose the system, select the products, and generate Product Specifications
+        Select Our Partner Distributor
       </h4>
 
       <div className="distributor-grid">
