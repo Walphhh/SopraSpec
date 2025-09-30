@@ -3,6 +3,7 @@ import "./globals.css"
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/utils/auth-provider";
+import SopraChatbot from "@/components/SopraChatbot";
 
 export const metadata: Metadata = {
   title: "SopraSpec",
@@ -20,6 +21,7 @@ export default function RootLayout({
         <AuthProvider>
           <NavBar />
           {children}
+          <SopraChatbot />
         </AuthProvider>
       </body>
     </html>
