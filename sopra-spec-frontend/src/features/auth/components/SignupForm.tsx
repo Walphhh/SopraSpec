@@ -1,7 +1,11 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { useState, FormEvent } from "react";
+import axios from "axios";
+import { getBackendUrl } from "@/utils/get-backend-url";
+import { useAuth } from "@/utils/auth-provider"; // adjust path
+import type { SessionPayload } from "@/utils/auth-provider"; // import the type
 
 type SignupFormData = {
   username: string;
@@ -17,15 +21,46 @@ export default function SignupForm() {
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const { login } = useAuth(); // reuse login from provider
+
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
-    // TODO: implement the signup logic (e.g., call useAuth().signup(form))
-    console.log("Sign-up attempt:", form);
+
+    try {
+      setLoading(true);
+      const res = await axios.post(getBackendUrl("/auth/signup"), {
+        email: form.email,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+        username: form.username,
+      });
+
+      // convert response into SessionPayload
+      const payload: SessionPayload = {
+        token: res.data.token,
+        refresh_token: res.data.refresh_token,
+        user: res.data.user,
+      };
+
+      // log user in after signup
+      login(payload);
+
+      alert("Account created successfully!");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.error || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,12 +98,16 @@ export default function SignupForm() {
         required
       />
 
+      {/* Error */}
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
       {/* Sign Up */}
       <button
         type="submit"
-        className="mx-auto block w-40 rounded-lg bg-[#76828B] py-2 text-white hover:opacity-90"
+        disabled={loading}
+        className="mx-auto block w-40 rounded-lg bg-[#76828B] py-2 text-white hover:opacity-90 disabled:opacity-60"
       >
-        Sign Up
+        {loading ? "Signing up…" : "Sign Up"}
       </button>
 
       {/* Divider */}

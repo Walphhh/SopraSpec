@@ -1,4 +1,7 @@
-'use client';
+"use client";
+import { SessionPayload, useAuth } from "@/utils/auth-provider";
+import { getBackendUrl } from "@/utils/get-backend-url";
+import axios from "axios";
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 
@@ -7,12 +10,35 @@ type LoginFormData = { email: string; password: string };
 export default function LoginForm() {
   const [form, setForm] = useState<LoginFormData>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { login } = useAuth();
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+
     try {
-      // TODO: implement the login logic (e.g., call useAuth().login(form))
+      const res = await axios.post(
+        getBackendUrl("/auth/login/email-password"),
+        form
+      );
+
+      // build SessionPayload explicitly
+      const payload: SessionPayload = {
+        token: res.data.token,
+        refresh_token: res.data.refresh_token,
+        user: res.data.user,
+      };
+
+      // call provider login
+      login(payload);
+
+      alert("Logged in successfully!");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.error || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -43,6 +69,9 @@ export default function LoginForm() {
           required
         />
       </label>
+
+      {/* Error message */}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
       {/* Forgot password */}
       <div className="flex justify-end -mt-1">
