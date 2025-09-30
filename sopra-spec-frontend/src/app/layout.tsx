@@ -1,10 +1,11 @@
+
 import Navbar from "../components/NavBar";
 import Breadcrumb from "../components/Breadcrumb";
-import "./globals.css";
+import "./globals.css";  
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/utils/auth-provider";
+import SopraChatbot from "@/components/SopraChatbot";
 
 export const metadata: Metadata = {
   title: "SopraSpec",
@@ -22,6 +23,7 @@ export default function RootLayout({
         <AuthProvider>
           <Navbar />
           {children}
+          <SopraChatbot />
         </AuthProvider>
       </body>
     </html>
