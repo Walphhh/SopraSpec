@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState, FormEvent } from "react";
 import axios from "axios";
 import { getBackendUrl } from "@/utils/get-backend-url";
-import { useAuth } from "@/utils/auth-provider"; // adjust path
-import type { SessionPayload } from "@/utils/auth-provider"; // import the type
+import { useAuth } from "@/utils/auth-provider";
+import type { SessionPayload } from "@/utils/types";
 
 type SignupFormData = {
   username: string;
@@ -24,7 +24,7 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { login } = useAuth(); // reuse login from provider
+  const { login } = useAuth();
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,14 +44,12 @@ export default function SignupForm() {
         username: form.username,
       });
 
-      // convert response into SessionPayload
       const payload: SessionPayload = {
         token: res.data.token,
         refresh_token: res.data.refresh_token,
-        user: res.data.user,
+        user_information: res.data.user_information,
       };
 
-      // log user in after signup
       login(payload);
 
       alert("Account created successfully!");
@@ -98,10 +96,8 @@ export default function SignupForm() {
         required
       />
 
-      {/* Error */}
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      {/* Sign Up */}
       <button
         type="submit"
         disabled={loading}
@@ -110,7 +106,6 @@ export default function SignupForm() {
         {loading ? "Signing up…" : "Sign Up"}
       </button>
 
-      {/* Divider */}
       <div className="flex items-center gap-3 text-[#8C99A5]">
         <div className="h-px flex-1 bg-[#C9D1D8]" />
         <span>Or</span>
@@ -119,7 +114,6 @@ export default function SignupForm() {
 
       <p className="text-center text-[#8C99A5]">Already have an account?</p>
 
-      {/* Log In link */}
       <Link
         href="/login"
         className="mx-auto block w-40 rounded-lg bg-[#76828B] py-2 text-center text-white hover:opacity-90"
