@@ -19,7 +19,21 @@ export default function HomePage() {
 
   // Add default "New Project" card
   const allProjects: Project[] = [
-    { id: "new", name: "New Project", isNew: true },
+    {
+      id: "new",
+      name: "New Project",
+      architect: "Please Enter Architect Name",
+      builder: "Please Enter Builder Name",
+      installer: "Please Enter Installer Name",
+      consultant: "Please Enter Consultant Name",
+      preparedBy: "Please Enter Your Name",
+      location: "Please Enter Project Location",
+      date: "2025-09-30",
+      notes: "Please Enter Any Notes (optional)",
+      thumbnail: "",
+      isNew: true
+
+    },
     ...projects
   ]
 

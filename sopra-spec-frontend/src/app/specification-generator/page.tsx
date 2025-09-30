@@ -18,7 +18,21 @@ export default function SpecificationGeneratorPage() {
 
     // Add default "New Project" card
     const allProjects: Project[] = [
-        { id: "new", name: "New Project", isNew: true },
+        {
+            id: "new",
+            name: "New Project",
+            architect: "",
+            builder: "",
+            installer: "",
+            consultant: "",
+            preparedBy: "",
+            location: "",
+            date: "",
+            notes: ")",
+            thumbnail: "",
+            isNew: true
+
+        },
         ...projects
     ]
 
