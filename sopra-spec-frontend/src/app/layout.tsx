@@ -11,7 +11,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Navbar /> {/* Navbar appears on every page */}
-        <main>{children}</main>
+        {children}
       </body>
     </html>
   )
