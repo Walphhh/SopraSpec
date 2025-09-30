@@ -12,6 +12,13 @@ export type Project = {
   thumbnail?: string
   isNew?: boolean
   warranties?: Warranty[]
+  drawings?: {
+    roof: Drawing[]
+    wall: Drawing[]
+    foundation: Drawing[]
+    civilWork: Drawing[]
+    internalWetArea: Drawing[]
+  }
 }
 
 export type Warranty = {
@@ -24,6 +31,11 @@ export type Warranty = {
     view?: string
     download?: string
   } // URLs for view/download
+}
+
+export type Drawing = {
+  name: string
+  url: string
 }
 
 export const mockProjects: Project[] = [
