@@ -1,10 +1,12 @@
 "use client";
+
 import { useAuth } from "@/utils/auth-provider";
 import { SessionPayload } from "@/utils/types";
 import { getBackendUrl } from "@/utils/get-backend-url";
 import axios from "axios";
 import Link from "next/link";
 import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation"; // ✅ FIXED
 
 type LoginFormData = { email: string; password: string };
 
@@ -12,7 +14,7 @@ export default function LoginForm() {
   const [form, setForm] = useState<LoginFormData>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const router = useRouter();
   const { login } = useAuth();
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -26,7 +28,6 @@ export default function LoginForm() {
         form
       );
 
-      // only take the fields we care about
       const payload: SessionPayload = {
         token: res.data.token,
         refresh_token: res.data.refresh_token,
@@ -34,8 +35,7 @@ export default function LoginForm() {
       };
 
       login(payload);
-
-      alert("Logged in successfully!");
+      router.push("/"); // ✅ will now work
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || "Login failed");
