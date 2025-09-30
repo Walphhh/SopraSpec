@@ -86,8 +86,8 @@ export default function DrawingsPage() {
                         <span
                             onClick={() => setActiveSection(s.key)}
                             className={`cursor-pointer py-1 font-semibold transition-colors ${activeSection === s.key
-                                    ? "text-[#0072CE] hover:underline"
-                                    : "text-[#7C878E] hover:underline"
+                                ? "text-[#0072CE] hover:underline"
+                                : "text-[#7C878E] hover:underline"
                                 }`}
                         >
                             {s.label}
@@ -120,14 +120,15 @@ export default function DrawingsPage() {
             </div>
 
             {/* Drawings list */}
-            <div className="space-y-2">
+            <div>
                 {project.drawings &&
                     project.drawings[activeSection] &&
                     project.drawings[activeSection].length > 0 ? (
-                    project.drawings[activeSection].map((d, idx) => (
+                    project.drawings[activeSection].map((d, idx, arr) => (
                         <div
                             key={idx}
-                            className="flex items-center justify-between p-2 border rounded hover:bg-gray-50"
+                            className={`flex items-center justify-between p-2 hover:bg-gray-50 ${idx < arr.length - 1 ? "border-b border-[#7C878E]" : ""
+                                }`}
                         >
                             <span
                                 className="text-[#0072CE] cursor-pointer"
