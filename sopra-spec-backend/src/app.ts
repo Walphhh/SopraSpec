@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import authRouter from "./routes/auth-routes";
+import systemStackRouter from "./routes/system-stack-routes";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
+app.use("/api/system-stacks", systemStackRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the SopraSpec Backend API!");
