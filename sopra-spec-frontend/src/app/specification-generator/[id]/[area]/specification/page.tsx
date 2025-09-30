@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Pencil } from "lucide-react"
-import { Project, Specification, mockProjects } from "@/lib/project"
+import { Project, Specification, mockProjects, AreaType } from "@/lib/projects"
 
 export default function SpecificationsPage() {
-    const { id } = useParams()
+    const { id, area } = useParams() as { id: string; area?: AreaType }
     const [project, setProject] = useState<Project | null>(null)
     const [editingStatusIndex, setEditingStatusIndex] = useState<number | null>(null)
 
@@ -19,10 +19,25 @@ export default function SpecificationsPage() {
 
     const handleStatusChange = (index: number, newStatus: Specification["status"]) => {
         setProject(prev => {
-            if (!prev) return prev
-            const updatedSpecs = [...(prev.specifications || [])]
+            if (!prev || !area) return prev
+
+            // Safely initialize areas if undefined
+            const currentAreas = prev.areas || {}
+
+            const areaSpecs = currentAreas[area]?.specifications || []
+            const updatedSpecs = [...areaSpecs]
             updatedSpecs[index].status = newStatus
-            return { ...prev, specifications: updatedSpecs }
+
+            return {
+                ...prev,
+                areas: {
+                    ...currentAreas,
+                    [area]: {
+                        ...currentAreas[area],
+                        specifications: updatedSpecs,
+                    },
+                },
+            }
         })
         setEditingStatusIndex(null)
     }
@@ -30,24 +45,45 @@ export default function SpecificationsPage() {
     const handleDelete = (index: number) => {
         if (!confirm("Are you sure you want to delete this specification?")) return
         setProject(prev => {
-            if (!prev) return prev
-            const updatedSpecs = [...(prev.specifications || [])]
+            if (!prev || !area) return prev
+
+            const currentAreas = prev.areas || {}
+
+            const areaSpecs = currentAreas[area]?.specifications || []
+            const updatedSpecs = [...areaSpecs]
             updatedSpecs.splice(index, 1)
-            return { ...prev, specifications: updatedSpecs }
+
+            return {
+                ...prev,
+                areas: {
+                    ...currentAreas,
+                    [area]: {
+                        ...currentAreas[area],
+                        specifications: updatedSpecs,
+                    },
+                },
+            }
         })
     }
 
     if (!project) return <div className="p-6">Loading...</div>
+    if (!area) return <div className="p-6 text-red-500">Area not selected</div>
 
-    const specs = project.specifications || []
+    const specs: Specification[] = project.areas?.[area]?.specifications || []
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold mb-4">{project.name}</h2>
-            <h5 className="mb-6">Project Specifications</h5>
+            <h5 className="text-left mb-6">
+                Specifications - {area
+                    .replace(/[_-]/g, " ")
+                    .replace(/\b\w/g, c => c.toUpperCase())
+                }
+            </h5>
 
             {specs.length === 0 ? (
-                <p>No specifications available.</p>
+                <div className="w-full flex justify-center">
+                    <p className="text-[#7C878E] text-center">No specifications available for this area.</p>
+                </div>
             ) : (
                 <table className="custom-table">
                     <thead>
@@ -73,9 +109,7 @@ export default function SpecificationsPage() {
                                             className="border border-gray-300 rounded px-2 py-1"
                                         >
                                             {statusOptions.map(opt => (
-                                                <option key={opt} value={opt}>
-                                                    {opt}
-                                                </option>
+                                                <option key={opt} value={opt}>{opt}</option>
                                             ))}
                                         </select>
                                     ) : (
@@ -88,16 +122,11 @@ export default function SpecificationsPage() {
                                     )}
                                 </td>
                                 <td className="actions">
-                                    {/* TODO: Add logic to be able to actually view the specifications */}
                                     {s.actions?.view && (
-                                        <a href={s.actions.view} target="_blank" rel="noopener noreferrer">
-                                            View
-                                        </a>
+                                        <a href={s.actions.view} target="_blank" rel="noopener noreferrer">View</a>
                                     )}
                                     {s.actions?.download && (
-                                        <a href={s.actions.download} download>
-                                            Download
-                                        </a>
+                                        <a href={s.actions.download} download>Download</a>
                                     )}
                                     {s.actions?.delete && (
                                         <button onClick={() => handleDelete(idx)}>Delete</button>

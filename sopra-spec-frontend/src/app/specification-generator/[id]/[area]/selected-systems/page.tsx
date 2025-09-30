@@ -3,27 +3,24 @@
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Plus, FileText, CircleX } from "lucide-react"
-import { Project, System, mockProjects } from "@/lib/project"
-
-type ProjectArea = "roof" | "wall" | "foundation" | "civilWork" | "internalWetArea"
+import { Project, System, mockProjects, AreaType } from "@/lib/projects"
 
 export default function SelectedSystemsPage() {
     const router = useRouter()
-    const { id } = useParams()
+    const { id, area } = useParams() as { id: string; area?: AreaType }
     const [project, setProject] = useState<Project | null>(null)
-    const [activeArea, setActiveArea] = useState<ProjectArea>("roof")
 
     useEffect(() => {
         const found = mockProjects.find(p => p.id === id) || null
         setProject(found)
     }, [id])
 
-    const areas: { key: ProjectArea; label: string }[] = [
+    const areas: { key: AreaType; label: string }[] = [
         { key: "roof", label: "Roof" },
         { key: "wall", label: "Wall" },
         { key: "foundation", label: "Foundation" },
-        { key: "civilWork", label: "Civil Work" },
-        { key: "internalWetArea", label: "Internal Wet Area" },
+        { key: "civil_work", label: "Civil Work" },
+        { key: "internal_wet_area", label: "Internal Wet Area" },
     ]
 
     const handleGenerateSpec = (system: System) => {
@@ -34,50 +31,38 @@ export default function SelectedSystemsPage() {
         if (!confirm("Are you sure you want to remove this system?")) return
 
         setProject(prev => {
-            if (!prev) return prev
-            const updatedSystems = {
-                roof: prev.systems?.roof || [],
-                wall: prev.systems?.wall || [],
-                foundation: prev.systems?.foundation || [],
-                civilWork: prev.systems?.civilWork || [],
-                internalWetArea: prev.systems?.internalWetArea || [],
-                ...prev.systems,
+            if (!prev || !area) return prev
+            const currentAreas = prev.areas || {}
+            const areaSystems = currentAreas[area]?.systems || []
+            const updatedSystems = [...areaSystems]
+            updatedSystems.splice(index, 1)
+
+            return {
+                ...prev,
+                areas: {
+                    ...currentAreas,
+                    [area]: {
+                        ...currentAreas[area],
+                        systems: updatedSystems,
+                    },
+                },
             }
-            const areaSystems = [...updatedSystems[activeArea]]
-            areaSystems.splice(index, 1)
-            updatedSystems[activeArea] = areaSystems
-            return { ...prev, systems: updatedSystems }
         })
     }
 
     if (!project) return <div className="p-6">Loading...</div>
+    if (!area) return <div className="p-6 text-red-500">Area not selected</div>
 
-    const systemsList = project.systems?.[activeArea] || []
+    const systemsList: System[] = project.areas?.[area]?.systems || []
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6">
-            <h2 className="text-2xl font-bold mb-2">{project.name}</h2>
-            <h5 className="text-left mb-6">Selected Systems</h5>
-
-            {/* Area tabs */}
-            <div className="flex justify-center space-x-2 mb-6">
-                {areas.map((a, index) => (
-                    <div key={a.key} className="flex items-center">
-                        <span
-                            onClick={() => setActiveArea(a.key)}
-                            className={`cursor-pointer py-1 font-semibold transition-colors ${activeArea === a.key
-                                    ? "text-[#0072CE] hover:underline"
-                                    : "text-[#7C878E] hover:underline"
-                                }`}
-                        >
-                            {a.label}
-                        </span>
-                        {index < areas.length - 1 && (
-                            <span className="text-[#7C878E] px-5">|</span>
-                        )}
-                    </div>
-                ))}
-            </div>
+            <h5 className="text-left mb-6">
+                Selected Systems - {area
+                    .replace(/[_-]/g, " ")
+                    .replace(/\b\w/g, c => c.toUpperCase())
+                }
+            </h5>
 
             {/* Add system button */}
             <div className="mb-4 flex justify-center">
@@ -95,7 +80,8 @@ export default function SelectedSystemsPage() {
                     systemsList.map((s, idx) => (
                         <div
                             key={idx}
-                            className={`flex items-center justify-between p-3 pb-5 hover:bg-gray-100 ${idx < systemsList.length - 1 ? "border-b border-[#7C878E]" : ""}`}
+                            className={`flex items-center justify-between p-3 pb-5 hover:bg-gray-100 ${idx < systemsList.length - 1 ? "border-b border-[#7C878E]" : ""
+                                }`}
                         >
                             <span className="text-[#0072CE]">{s.name}</span>
                             <div className="flex gap-2">
@@ -115,8 +101,8 @@ export default function SelectedSystemsPage() {
                         </div>
                     ))
                 ) : (
-                    <div className="w-full h-48 flex justify-center items-center">
-                        <p className="text-[#7C878E] text-center">No systems added yet.</p>
+                    <div className="w-full h-48 flex justify-center items-center text-center">
+                        <p className="text-[#7C878E]">No systems added yet for this area.</p>
                     </div>
                 )}
             </div>

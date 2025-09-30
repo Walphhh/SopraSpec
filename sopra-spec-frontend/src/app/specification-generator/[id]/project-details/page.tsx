@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { Upload, Pencil } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
-import { Project, mockProjects } from "@/lib/project"
+import { Project, mockProjects } from "@/lib/projects"
 
 export default function ProjectDetailsPage() {
     const router = useRouter()
@@ -19,7 +19,7 @@ export default function ProjectDetailsPage() {
     useEffect(() => {
         if (id === "new") {
             const newProj = {
-                id: "new",
+                id: "", // will generate on save
                 name: "",
                 architect: "",
                 builder: "",
@@ -30,7 +30,7 @@ export default function ProjectDetailsPage() {
                 date: "",
                 notes: "",
                 thumbnail: "",
-                isNew: true,
+                ownerId: "dummy-owner"
             }
             setProject(newProj)
             setForm(newProj)
@@ -59,7 +59,7 @@ export default function ProjectDetailsPage() {
         setForm({ ...form, [key]: value })
         setIsModified(true)
         setError("")
-        setMissingFields((prev) => prev.filter((f) => f !== key)) // remove field from missing when filled
+        setMissingFields((prev) => prev.filter((f) => f !== key))
     }
 
     const handleSave = () => {
@@ -76,29 +76,27 @@ export default function ProjectDetailsPage() {
             return
         }
 
-        let newProjectId = project!.id
-        if (project!.isNew) {
-            newProjectId = uuidv4() // generate a new ID
-        }
+        let newProjectId = project!.id || uuidv4() // generate a new ID if empty
 
-        // Update project state so the title reflects new name
-        setProject({ ...project!, ...form, id: newProjectId, isNew: false })
+        // Update project state
+        const updatedProject: Project = { ...project!, ...form, id: newProjectId }
 
-        alert("Project details saved!")
+        setProject(updatedProject)
         setIsModified(false)
         setError("")
         setMissingFields([])
 
-        /* TODO: Navigate with new id after creating new project */
-        // router.replace(`/specification-generator/${newProjectId}/project-details`)
+        alert("Project details saved!")
+
+        // Redirect to the new project's URL if it was a new project 
+        // if (!project!.id) {
+        //     router.replace(`/specification-generator/${newProjectId}/project-details`)
+        // }
     }
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6">
-            <h2 className="text-2xl font-bold mb-2">
-                {project.isNew ? "Create New Project" : project.name}
-            </h2>
-            <h5 className="text-left mb-6 -ml-30">Project Details</h5>
+            <h5 className="text-left -mt-6 mb-6">Project Details</h5>
 
             <div className="space-y-4">
                 {fields.map((f) => {
@@ -112,7 +110,7 @@ export default function ProjectDetailsPage() {
                                 <input
                                     type="text"
                                     value={form[f.key] || ""}
-                                    placeholder={project.isNew ? `Please Enter ${f.label}` : ""}
+                                    placeholder={id === "new" ? `Please Enter ${f.label}` : ""}
                                     onChange={(e) => handleChange(f.key, e.target.value)}
                                     onFocus={() => setFocusedField(f.key)}
                                     onBlur={() => setFocusedField(null)}
@@ -141,7 +139,6 @@ export default function ProjectDetailsPage() {
                         Thumbnail (optional):
                     </label>
 
-                    {/* Hidden file input */}
                     <input
                         id="thumbnail-upload"
                         type="file"
@@ -156,7 +153,6 @@ export default function ProjectDetailsPage() {
                         }}
                     />
 
-                    {/* Trigger button */}
                     <label
                         htmlFor="thumbnail-upload"
                         className="flex items-center justify-center w-48 px-4 py-2 bg-[#E2E2E2] text-[#7C878E] rounded cursor-pointer hover:bg-[#0072CE] hover:text-white transition"
@@ -164,7 +160,6 @@ export default function ProjectDetailsPage() {
                         <Upload className="mr-2" size={18} /> Upload Image
                     </label>
 
-                    {/* Preview */}
                     {form.thumbnail && (
                         <img
                             src={form.thumbnail}
@@ -174,10 +169,8 @@ export default function ProjectDetailsPage() {
                     )}
                 </div>
 
-                {/* Error message */}
                 {error && <p className="text-red-500 font-semibold">{error}</p>}
 
-                {/* Save button */}
                 <button
                     className={`px-6 py-3 font-bold rounded text-white ${isModified
                         ? "bg-[#0072CE] hover:bg-[#0072CE]"
