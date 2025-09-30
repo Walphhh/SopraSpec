@@ -1,5 +1,5 @@
 import Image from "next/image";
-import LoginForm from "@/features/auth/components/LoginForm";
+import LoginForm from "./LoginForm";
 
 export default function Page() {
   return (
