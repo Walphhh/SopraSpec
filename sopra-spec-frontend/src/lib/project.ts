@@ -11,9 +11,20 @@ export type Project = {
   notes?: string
   thumbnail?: string
   isNew?: boolean
+  warranties?: Warranty[]
 }
 
-
+export type Warranty = {
+  systemName: string
+  warrantyPeriod: string
+  issueDate: string
+  expiryDate: string
+  status: "Active" | "Expired"
+  actions?: {
+    view?: string
+    download?: string
+  } // URLs for view/download
+}
 
 export const mockProjects: Project[] = [
   {
@@ -29,6 +40,30 @@ export const mockProjects: Project[] = [
     notes: "Sample notes",
     thumbnail: "",
     isNew: false,
+    warranties: [
+      {
+        systemName: "Roofing System",
+        warrantyPeriod: "15 years",
+        issueDate: "2025-01-01",
+        expiryDate: "2030-01-01",
+        status: "Active",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+      {
+        systemName: "Foundation System",
+        warrantyPeriod: "20 years",
+        issueDate: "2000-01-01",
+        expiryDate: "2020-01-01",
+        status: "Expired",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+    ],
   },
   {
     id: "2",
@@ -43,6 +78,30 @@ export const mockProjects: Project[] = [
     notes: "Sample notes",
     thumbnail: "",
     isNew: false,
+    warranties: [
+      {
+        systemName: "Roofing System",
+        warrantyPeriod: "15 years",
+        issueDate: "2025-01-01",
+        expiryDate: "2030-01-01",
+        status: "Active",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+      {
+        systemName: "Foundation System",
+        warrantyPeriod: "20 years",
+        issueDate: "2000-01-01",
+        expiryDate: "2020-01-01",
+        status: "Expired",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+    ],
   },
   {
     id: "3",
@@ -57,6 +116,30 @@ export const mockProjects: Project[] = [
     notes: "Sample notes",
     thumbnail: "",
     isNew: false,
+    warranties: [
+      {
+        systemName: "Roofing System",
+        warrantyPeriod: "15 years",
+        issueDate: "2025-01-01",
+        expiryDate: "2030-01-01",
+        status: "Active",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+      {
+        systemName: "Foundation System",
+        warrantyPeriod: "20 years",
+        issueDate: "2000-01-01",
+        expiryDate: "2020-01-01",
+        status: "Expired",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+    ],
   },
   {
     id: "4",
@@ -71,5 +154,29 @@ export const mockProjects: Project[] = [
     notes: "Sample notes",
     thumbnail: "",
     isNew: false,
+    warranties: [
+      {
+        systemName: "Roofing System",
+        warrantyPeriod: "15 years",
+        issueDate: "2025-01-01",
+        expiryDate: "2030-01-01",
+        status: "Active",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+      {
+        systemName: "Foundation System",
+        warrantyPeriod: "20 years",
+        issueDate: "2000-01-01",
+        expiryDate: "2020-01-01",
+        status: "Expired",
+        actions: {
+          view: "/files/roofing-warranty.pdf",
+          download: "/files/roofing-warranty.pdf"
+        }
+      },
+    ],
   },
 ]
