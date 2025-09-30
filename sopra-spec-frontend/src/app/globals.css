@@ -39,6 +39,11 @@ h4 {
     padding: 5px;
 }
 
+h5 {
+    font-size: 22px;
+    font-weight: 600;
+}
+
 p {
     padding: 24px;
     text-align: left;

@@ -85,7 +85,7 @@ export default function ProjectDetailsPage() {
             <h2 className="text-2xl font-bold mb-2">
                 {project.isNew ? "Create New Project" : project.name}
             </h2>
-            <h4 className="text-[#7C878E] mb-6">Project Details</h4>
+            <h5 className="text-left mb-6 -ml-30">Project Details</h5>
 
             <div className="space-y-4">
                 {fields.map((f) => {
