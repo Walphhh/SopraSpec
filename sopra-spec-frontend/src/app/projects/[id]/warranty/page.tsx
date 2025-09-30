@@ -1,12 +1,14 @@
-import PageHeader from '@/features/common/components/PageHeader';
-import WarrantyTable from '@/features/projects/components/WarrantyTable';
+'use client';
 
-type Props = { params: { id: string } };
+import { useParams } from "next/navigation";
+import WarrantyTable from "@/features/projects/components/WarrantyTable";
 
-export default function Page({ params }: Props) {
+export default function Page() {
+  const { id } = useParams() as { id: string };
   return (
     <main className="p-6">
-      <PageHeader title="Warranty" subtitle={`Project ID: ${params.id}`} />
+      <h1 className="text-2xl font-semibold">Warranty</h1>
+      <p className="text-sm text-gray-600 mb-4">Project ID: {id}</p>
       <WarrantyTable />
     </main>
   );

@@ -1,24 +1,25 @@
 'use client';
-type Item = { id: string; name: string };
 
-const mock: Item[] = [
-  { id: 'a', name: 'SOPRAVAP’R' },
-  { id: 'b', name: 'FLAGON EP/PR F' },
+type Product = { id: string; name: string; category: string };
+
+const mockProducts: Product[] = [
+  { id: "1", name: "SOPRAVAP’R", category: "Vapour Barrier" },
+  { id: "2", name: "FLAGON SFc", category: "Waterproofing Membrane" },
+  { id: "3", name: "ALSAN FLASHING", category: "Sealant" },
 ];
 
 export default function SelectedProductsList() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      {mock.map((i) => (
-        <div key={i.id} className="rounded border p-4 flex items-center justify-between">
-          <div className="font-medium">{i.name}</div>
-          <button className="rounded border px-2 py-1">Remove</button>
+    <div className="grid gap-4 sm:grid-cols-2">
+      {mockProducts.map((p) => (
+        <div
+          key={p.id}
+          className="rounded border p-4 hover:shadow-md transition"
+        >
+          <h3 className="font-semibold">{p.name}</h3>
+          <p className="text-sm text-gray-600">{p.category}</p>
         </div>
       ))}
-      <div className="col-span-full flex gap-3">
-        <a className="rounded bg-gray-200 px-4 py-2" href="/home">Add More Products</a>
-        <button className="rounded bg-blue-600 px-4 py-2 text-white">Generate Specification</button>
-      </div>
     </div>
   );
 }

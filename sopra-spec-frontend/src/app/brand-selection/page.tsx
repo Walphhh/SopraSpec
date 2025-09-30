@@ -1,5 +1,5 @@
-import PageHeader from '@/features/common/components/PageHeader';
-import BrandGrid from '@/features/products/components/BrandGrid';
+import PageHeader from "@/features/common/components/PageHeader";
+import BrandGrid from "@/features/products/components/BrandGrid";
 
 export default function Page() {
   return (
