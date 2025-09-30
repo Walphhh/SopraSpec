@@ -13,9 +13,9 @@
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "uuid": "^13.0.0"
-    "axios": "^1.12.2",
-]
+    "react-pdf": "^10.1.0",
+    "uuid": "^13.0.0",
+    "axios": "^1.12.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

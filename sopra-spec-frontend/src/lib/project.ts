@@ -1,30 +1,54 @@
-export type Project = {
-  id: string
-  name: string
-  architect: string
-  builder: string
-  installer: string
-  consultant: string
-  preparedBy: string
-  location: string
-  date: string
-  notes?: string
-  thumbnail?: string
-  isNew?: boolean
-  warranties?: Warranty[]
+export interface NewProject {
+  id: string;
+  name: string;
+  architect: string;
+  builder: string;
+  installer: string;
+  consultant: string;
+  preparedBy: string;
+  location: string;
+  date: string;
+  notes?: string;
+  thumbnail?: string;
+  warranties?: Warranty[];
+}
+
+interface Project extends NewProject {
+  ownerId: string;
+}
+interface ProjectArea {
+  id: string;
+  areaType: AreaType;
+  projectId: string;
+  systemStackId: string;
+  name: string;
+  drawing?: string; // url for the drawing
+  status: "Draft" | "Final" | "Archived";
+  actions?: {
+    view?: string;
+    download?: string;
+    delete?: boolean;
+  };
 }
 
 export type Warranty = {
-  systemName: string
-  warrantyPeriod: string
-  issueDate: string
-  expiryDate: string
-  status: "Active" | "Expired"
+  name: string;
+  warrantyPeriod: string;
+  issueDate: string;
+  expiryDate: string;
+  status: "Active" | "Expired";
   actions?: {
-    view?: string
-    download?: string
-  } // URLs for view/download
-}
+    view?: string;
+    download?: string;
+  }; // URLs for view/download
+};
+
+type AreaType =
+  | "roof"
+  | "wall"
+  | "foundation"
+  | "civil_work"
+  | "internal_wet_area";
 
 export const mockProjects: Project[] = [
   {
@@ -49,8 +73,8 @@ export const mockProjects: Project[] = [
         status: "Active",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
       },
       {
         systemName: "Foundation System",
@@ -60,8 +84,37 @@ export const mockProjects: Project[] = [
         status: "Expired",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
+      },
+    ],
+    systems: {
+      roof: [{ name: "Roofing System A" }, { name: "Roofing System A123" }],
+      wall: [{ name: "Wall System A" }],
+      foundation: [],
+      civilWork: [],
+      internalWetArea: [],
+    },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true,
+        },
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true,
+        },
       },
     ],
   },
@@ -87,8 +140,8 @@ export const mockProjects: Project[] = [
         status: "Active",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
       },
       {
         systemName: "Foundation System",
@@ -98,8 +151,37 @@ export const mockProjects: Project[] = [
         status: "Expired",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
+      },
+    ],
+    systems: {
+      roof: [{ name: "Roofing System B" }, { name: "Roofing System Beta" }],
+      wall: [{ name: "Wall System B" }],
+      foundation: [],
+      civilWork: [],
+      internalWetArea: [{ name: "Bathroom System B" }],
+    },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true,
+        },
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true,
+        },
       },
     ],
   },
@@ -125,8 +207,8 @@ export const mockProjects: Project[] = [
         status: "Active",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
       },
       {
         systemName: "Foundation System",
@@ -136,8 +218,37 @@ export const mockProjects: Project[] = [
         status: "Expired",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
+      },
+    ],
+    systems: {
+      roof: [{ name: "Roofing System C" }, { name: "Roofing System C102" }],
+      wall: [{ name: "Wall System C" }],
+      foundation: [],
+      civilWork: [],
+      internalWetArea: [],
+    },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true,
+        },
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true,
+        },
       },
     ],
   },
@@ -163,8 +274,8 @@ export const mockProjects: Project[] = [
         status: "Active",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
       },
       {
         systemName: "Foundation System",
@@ -174,9 +285,38 @@ export const mockProjects: Project[] = [
         status: "Expired",
         actions: {
           view: "/files/roofing-warranty.pdf",
-          download: "/files/roofing-warranty.pdf"
-        }
+          download: "/files/roofing-warranty.pdf",
+        },
+      },
+    ],
+    systems: {
+      roof: [{ name: "Roofing System D" }, { name: "Roofing System Delta" }],
+      wall: [{ name: "Wall System D" }],
+      foundation: [],
+      civilWork: [{ name: "Bridge System D" }],
+      internalWetArea: [],
+    },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true,
+        },
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true,
+        },
       },
     ],
   },
-]
+];

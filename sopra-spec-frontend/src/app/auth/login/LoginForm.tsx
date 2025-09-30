@@ -1,9 +1,12 @@
 "use client";
-import { SessionPayload, useAuth } from "@/utils/auth-provider";
+
+import { useAuth } from "@/utils/auth-provider";
+import { SessionPayload } from "@/utils/types";
 import { getBackendUrl } from "@/utils/get-backend-url";
 import axios from "axios";
 import Link from "next/link";
 import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation"; // ✅ FIXED
 
 type LoginFormData = { email: string; password: string };
 
@@ -11,7 +14,7 @@ export default function LoginForm() {
   const [form, setForm] = useState<LoginFormData>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const router = useRouter();
   const { login } = useAuth();
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -25,17 +28,14 @@ export default function LoginForm() {
         form
       );
 
-      // build SessionPayload explicitly
       const payload: SessionPayload = {
         token: res.data.token,
         refresh_token: res.data.refresh_token,
-        user: res.data.user,
+        user_information: res.data.user_information,
       };
 
-      // call provider login
       login(payload);
-
-      alert("Logged in successfully!");
+      router.push("/"); // ✅ will now work
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || "Login failed");
@@ -70,10 +70,8 @@ export default function LoginForm() {
         />
       </label>
 
-      {/* Error message */}
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      {/* Forgot password */}
       <div className="flex justify-end -mt-1">
         <button
           type="button"
@@ -83,7 +81,6 @@ export default function LoginForm() {
         </button>
       </div>
 
-      {/* Log In */}
       <button
         type="submit"
         disabled={loading}
@@ -92,17 +89,14 @@ export default function LoginForm() {
         {loading ? "Logging in…" : "Log In"}
       </button>
 
-      {/* Divider + text */}
       <div className="flex items-center gap-3 text-[#8C99A5]">
         <div className="h-px flex-1 bg-[#C9D1D8]" />
         <span>Or</span>
         <div className="h-px flex-1 bg-[#C9D1D8]" />
       </div>
 
-      {/* Sign up prompt */}
       <p className="text-center text-[#8C99A5]">Don’t have an account?</p>
 
-      {/* Sign Up */}
       <Link
         href="/signup"
         className="mx-auto block w-40 rounded-lg bg-[#76828B] py-2 text-center text-white hover:opacity-90"
