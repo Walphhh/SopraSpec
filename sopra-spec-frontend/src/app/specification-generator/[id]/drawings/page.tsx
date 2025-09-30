@@ -85,11 +85,10 @@ export default function DrawingsPage() {
                     <div key={s.key} className="flex items-center">
                         <span
                             onClick={() => setActiveSection(s.key)}
-                            className={`cursor-pointer py-1 font-semibold transition-colors ${
-                                activeSection === s.key
+                            className={`cursor-pointer py-1 font-semibold transition-colors ${activeSection === s.key
                                     ? "text-[#0072CE] hover:underline"
                                     : "text-[#7C878E] hover:underline"
-                            }`}
+                                }`}
                         >
                             {s.label}
                         </span>
@@ -114,7 +113,7 @@ export default function DrawingsPage() {
                 />
                 <label
                     htmlFor="upload-file"
-                    className="inline-flex items-center justify-center w-56 gap-2 px-4 py-2 bg-[#E2E2E2] text-[#7C878E] rounded cursor-pointer hover:bg-[#0072CE] hover:text-white transition"
+                    className="inline-flex items-center justify-center w-56 gap-2 px-4 py-2 bg-[#7C878E] text-white rounded cursor-pointer hover:bg-[#0072CE] transition"
                 >
                     <Upload size={18} /> Upload File
                 </label>
@@ -123,8 +122,8 @@ export default function DrawingsPage() {
             {/* Drawings list */}
             <div className="space-y-2">
                 {project.drawings &&
-                project.drawings[activeSection] &&
-                project.drawings[activeSection].length > 0 ? (
+                    project.drawings[activeSection] &&
+                    project.drawings[activeSection].length > 0 ? (
                     project.drawings[activeSection].map((d, idx) => (
                         <div
                             key={idx}
@@ -145,44 +144,13 @@ export default function DrawingsPage() {
                         </div>
                     ))
                 ) : (
-                    <div className="w-full text-center py-4">
-                        <p className="text-[#7C878E]">No drawing uploaded yet.</p>
+                    <div className="w-full h-30 flex justify-center items-center">
+                        <p className="text-[#7C878E] text-center">No drawing uploaded yet.</p>
                     </div>
                 )}
             </div>
 
             {/* Zoom modal */}
-            {/* {zoomedDrawing && (
-                <div
-                    ref={modalRef}
-                    onClick={handleModalClick}
-                    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-                >
-                    <div className="relative bg-white p-4 rounded max-w-3xl w-full">
-                        <button
-                            onClick={() => setZoomedDrawing(null)}
-                            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        {zoomedDrawing.url.toLowerCase().endsWith(".pdf") ? (
-                            <iframe
-                                src={zoomedDrawing.url}
-                                className="w-full h-[600px]"
-                                title={zoomedDrawing.name}
-                            />
-                        ) : (
-                            <img
-                                src={zoomedDrawing.url}
-                                alt={zoomedDrawing.name}
-                                className="w-full object-contain max-h-[600px]"
-                            />
-                        )}
-                    </div>
-                </div>
-            )} */}
-            
             {zoomedDrawing && (
                 <div
                     ref={modalRef}
