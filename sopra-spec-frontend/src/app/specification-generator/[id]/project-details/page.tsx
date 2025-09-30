@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { Project, mockProjects } from "@/lib/project"
+import { v4 as uuidv4 } from "uuid"
 import { Upload, Pencil } from "lucide-react"
+import { useRouter, useParams } from "next/navigation"
+import { Project, mockProjects } from "@/lib/project"
 
 export default function ProjectDetailsPage() {
+    const router = useRouter()
     const { id } = useParams()
     const [project, setProject] = useState<Project | null>(null)
     const [form, setForm] = useState<any>({})
@@ -74,10 +76,21 @@ export default function ProjectDetailsPage() {
             return
         }
 
+        let newProjectId = project!.id
+        if (project!.isNew) {
+            newProjectId = uuidv4() // generate a new ID
+        }
+
+        // Update project state so the title reflects new name
+        setProject({ ...project!, ...form, id: newProjectId, isNew: false })
+
         alert("Project details saved!")
         setIsModified(false)
         setError("")
         setMissingFields([])
+
+        /* TODO: Navigate with new id after creating new project */
+        // router.replace(`/specification-generator/${newProjectId}/project-details`)
     }
 
     return (
@@ -104,17 +117,17 @@ export default function ProjectDetailsPage() {
                                     onFocus={() => setFocusedField(f.key)}
                                     onBlur={() => setFocusedField(null)}
                                     className={`w-full border-2 rounded p-2 pr-10 outline-none bg-transparent transition-colors ${isError
-                                            ? "border-red-500 text-red-500"
-                                            : "border-[#7C878E] text-[#7C878E] focus:border-[#0072CE] focus:text-[#0072CE]"
+                                        ? "border-red-500 text-red-500"
+                                        : "border-[#7C878E] text-[#7C878E] focus:border-[#0072CE] focus:text-[#0072CE]"
                                         }`}
                                 />
                                 <Pencil
                                     size={18}
                                     className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${focusedField === f.key
-                                            ? "text-[#0072CE]"
-                                            : isError
-                                                ? "text-red-500"
-                                                : "text-[#7C878E]"
+                                        ? "text-[#0072CE]"
+                                        : isError
+                                            ? "text-red-500"
+                                            : "text-[#7C878E]"
                                         }`}
                                 />
                             </div>
@@ -167,8 +180,8 @@ export default function ProjectDetailsPage() {
                 {/* Save button */}
                 <button
                     className={`px-6 py-3 font-bold rounded text-white ${isModified
-                            ? "bg-[#0072CE] hover:bg-[#0072CE]"
-                            : "bg-gray-400 cursor-not-allowed"
+                        ? "bg-[#0072CE] hover:bg-[#0072CE]"
+                        : "bg-gray-400 cursor-not-allowed"
                         }`}
                     disabled={!isModified}
                     onClick={handleSave}
