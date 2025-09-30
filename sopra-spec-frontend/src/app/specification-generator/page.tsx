@@ -39,7 +39,7 @@ export default function SpecificationGeneratorPage() {
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">All Project</h1>
-            <h4 className="mb-10">Select Existing Project or Create New Projec to Start Generating Product Specifications</h4>
+            <h4 className="mb-10">Select Existing Project or Create New Project to Start Generating Product Specifications</h4>
 
             <div className="flex flex-wrap justify-center gap-x-[30px] gap-y-[30px]">
                 {allProjects.map((project) => (
