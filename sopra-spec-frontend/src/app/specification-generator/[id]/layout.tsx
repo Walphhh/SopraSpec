@@ -16,7 +16,7 @@ export default function SpecLayout({
 
     return (
         <div className="p-2">
-            <ProjectSpecNavBar projectId={project.id} projectName={project.name}/>
+            <ProjectSpecNavBar projectId={project.id} projectName={project.name} />
             {children}
         </div>
     )
