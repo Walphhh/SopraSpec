@@ -1,103 +1,160 @@
 import { Request, Response } from "express";
 import supabase from "@src/config/supabase-client";
 import { Status, getStatusMessage } from "@src/utils/status-codes";
-import { toProjectModel } from "@src/utils/models/project-mapper";
 
 const ProjectController = {
   /**
    * Create a new project
-   * @param req body: { ownerId, builder, architect, installer, consultant, preparedBy, location, date, notes, thumbnailUrl }
-   * @param res
-   * @returns Created project
    */
   createProject: async (req: Request, res: Response) => {
-    const {
-      ownerId,
-      builder,
-      architect,
-      installer,
-      consultant,
-      preparedBy,
-      location,
-      date,
-      notes,
-      thumbnailUrl,
-    } = req.body;
-
-    if (!ownerId) {
-      return res
-        .status(Status.BAD_REQUEST)
-        .json({ error: "Owner ID is required" });
-    }
-
     try {
+      const { ownerId, ...projectData } = req.body;
+
       const { data, error } = await supabase
         .from("projects")
-        .insert([
-          {
-            owner_id: ownerId,
-            builder,
-            architect,
-            installer,
-            consultant,
-            prepared_by: preparedBy,
-            location,
-            date,
-            notes,
-            thumbnail_url: thumbnailUrl,
-          },
-        ])
+        .insert([{ owner_id: ownerId, ...projectData }])
         .select()
         .single();
 
-      if (error) {
+      if (error)
         return res.status(Status.BAD_REQUEST).json({ error: error.message });
-      }
 
-      return res.status(Status.SUCCESS).json({
-        message: "Project created successfully",
-        project: toProjectModel(data),
-      });
+      return res.status(Status.SUCCESS).json({ project: data });
     } catch {
-      return res.status(Status.INTERNAL_SERVER_ERROR).json({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-      });
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
     }
   },
 
   /**
-   * Get all projects for a given user
-   * @param req query: { ownerId }
-   * @param res
-   * @returns List of projects
+   * Get all projects for an owner
    */
-  getProjectsByUser: async (req: Request, res: Response) => {
-    const { ownerId } = req.query;
-
-    if (!ownerId || typeof ownerId !== "string") {
-      return res
-        .status(Status.BAD_REQUEST)
-        .json({ error: "ownerId query parameter is required" });
-    }
-
+  getProjectsByOwner: async (req: Request, res: Response) => {
     try {
+      const { ownerId } = req.query;
+      if (!ownerId) {
+        return res
+          .status(Status.BAD_REQUEST)
+          .json({ error: "Missing ownerId" });
+      }
+
       const { data, error } = await supabase
         .from("projects")
         .select("*")
         .eq("owner_id", ownerId);
 
-      if (error) {
+      if (error)
         return res.status(Status.BAD_REQUEST).json({ error: error.message });
-      }
 
-      return res.status(Status.SUCCESS).json({
-        message: "Projects fetched successfully",
-        projects: data.map(toProjectModel),
-      });
+      return res.status(Status.SUCCESS).json({ projects: data });
     } catch {
-      return res.status(Status.INTERNAL_SERVER_ERROR).json({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-      });
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
+  /**
+   * Get a single project by ID
+   */
+  getProjectById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*, project_areas(*)") // join areas
+        .eq("id", id)
+        .single();
+
+      if (error)
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+
+      return res.status(Status.SUCCESS).json({ project: data });
+    } catch {
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
+  /**
+   * Delete a project
+   */
+  deleteProject: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const { error } = await supabase.from("projects").delete().eq("id", id);
+
+      if (error)
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+
+      return res
+        .status(Status.SUCCESS)
+        .json({ message: "Project deleted successfully" });
+    } catch {
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
+  /**
+   * Create a project area
+   */
+  createProjectArea: async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+      const { name, areaType, drawing, systemStackId, status } = req.body;
+
+      const { data, error } = await supabase
+        .from("project_areas")
+        .insert([
+          {
+            project_id: projectId,
+            name,
+            area_type: areaType,
+            drawing,
+            system_stack_id: systemStackId,
+            status,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error)
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+
+      return res.status(Status.SUCCESS).json({ project_area: data });
+    } catch {
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
+  /**
+   * Get all areas for a project
+   */
+  getProjectAreas: async (req: Request, res: Response) => {
+    try {
+      const { projectId } = req.params;
+
+      const { data, error } = await supabase
+        .from("project_areas")
+        .select("*")
+        .eq("project_id", projectId);
+
+      if (error)
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+
+      return res.status(Status.SUCCESS).json({ project_areas: data });
+    } catch {
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
     }
   },
 };
