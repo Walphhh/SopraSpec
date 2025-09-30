@@ -19,6 +19,13 @@ export type Project = {
     civilWork: Drawing[]
     internalWetArea: Drawing[]
   }
+  systems?: {
+    roof: System[]
+    wall: System[]
+    foundation: System[]
+    civilWork: System[]
+    internalWetArea: System[]
+  }
 }
 
 export type Warranty = {
@@ -36,6 +43,11 @@ export type Warranty = {
 export type Drawing = {
   name: string
   url: string
+}
+
+export type System = {
+  name: string
+  // TODO: selected products (???)
 }
 
 export const mockProjects: Project[] = [
@@ -76,6 +88,16 @@ export const mockProjects: Project[] = [
         }
       },
     ],
+    systems: { 
+      roof: [
+        { name: "Roofing System A", },
+        { name: "Roofing System A123"},
+      ], 
+      wall: [{ name: "Wall System A" }], 
+      foundation: [], 
+      civilWork: [], 
+      internalWetArea: [] 
+    },
   },
   {
     id: "2",
@@ -114,6 +136,16 @@ export const mockProjects: Project[] = [
         }
       },
     ],
+    systems: { 
+      roof: [
+        { name: "Roofing System B", },
+        { name: "Roofing System Beta"},
+      ], 
+      wall: [{ name: "Wall System B" }], 
+      foundation: [], 
+      civilWork: [], 
+      internalWetArea: [{ name: "Bathroom System B" }] 
+    },
   },
   {
     id: "3",
@@ -152,6 +184,16 @@ export const mockProjects: Project[] = [
         }
       },
     ],
+    systems: { 
+      roof: [
+        { name: "Roofing System C", },
+        { name: "Roofing System C102"},
+      ], 
+      wall: [{ name: "Wall System C" }], 
+      foundation: [], 
+      civilWork: [], 
+      internalWetArea: [] 
+    },
   },
   {
     id: "4",
@@ -190,5 +232,15 @@ export const mockProjects: Project[] = [
         }
       },
     ],
+    systems: { 
+      roof: [
+        { name: "Roofing System D", },
+        { name: "Roofing System Delta"},
+      ], 
+      wall: [{ name: "Wall System D" }], 
+      foundation: [], 
+      civilWork: [{ name: "Bridge System D" }], 
+      internalWetArea: [] 
+    },
   },
 ]
