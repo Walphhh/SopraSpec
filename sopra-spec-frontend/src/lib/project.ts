@@ -26,6 +26,7 @@ export type Project = {
     civilWork: System[]
     internalWetArea: System[]
   }
+  specifications?: Specification[]
 }
 
 export type Warranty = {
@@ -48,6 +49,17 @@ export type Drawing = {
 export type System = {
   name: string
   // TODO: selected products (???)
+}
+
+export type Specification = {
+  name: string
+  dateCreated: string
+  status: "Draft" | "Final" | "Archived"
+  actions?: {
+    view?: string
+    download?: string
+    delete?: boolean
+  }
 }
 
 export const mockProjects: Project[] = [
@@ -88,16 +100,38 @@ export const mockProjects: Project[] = [
         }
       },
     ],
-    systems: { 
+    systems: {
       roof: [
         { name: "Roofing System A", },
-        { name: "Roofing System A123"},
-      ], 
-      wall: [{ name: "Wall System A" }], 
-      foundation: [], 
-      civilWork: [], 
-      internalWetArea: [] 
+        { name: "Roofing System A123" },
+      ],
+      wall: [{ name: "Wall System A" }],
+      foundation: [],
+      civilWork: [],
+      internalWetArea: []
     },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true
+        }
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true
+        }
+      }
+    ]
   },
   {
     id: "2",
@@ -136,16 +170,38 @@ export const mockProjects: Project[] = [
         }
       },
     ],
-    systems: { 
+    systems: {
       roof: [
         { name: "Roofing System B", },
-        { name: "Roofing System Beta"},
-      ], 
-      wall: [{ name: "Wall System B" }], 
-      foundation: [], 
-      civilWork: [], 
-      internalWetArea: [{ name: "Bathroom System B" }] 
+        { name: "Roofing System Beta" },
+      ],
+      wall: [{ name: "Wall System B" }],
+      foundation: [],
+      civilWork: [],
+      internalWetArea: [{ name: "Bathroom System B" }]
     },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true
+        }
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true
+        }
+      }
+    ]
   },
   {
     id: "3",
@@ -184,16 +240,38 @@ export const mockProjects: Project[] = [
         }
       },
     ],
-    systems: { 
+    systems: {
       roof: [
         { name: "Roofing System C", },
-        { name: "Roofing System C102"},
-      ], 
-      wall: [{ name: "Wall System C" }], 
-      foundation: [], 
-      civilWork: [], 
-      internalWetArea: [] 
+        { name: "Roofing System C102" },
+      ],
+      wall: [{ name: "Wall System C" }],
+      foundation: [],
+      civilWork: [],
+      internalWetArea: []
     },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true
+        }
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true
+        }
+      }
+    ]
   },
   {
     id: "4",
@@ -231,16 +309,39 @@ export const mockProjects: Project[] = [
           download: "/files/roofing-warranty.pdf"
         }
       },
+
     ],
-    systems: { 
+    systems: {
       roof: [
         { name: "Roofing System D", },
-        { name: "Roofing System Delta"},
-      ], 
-      wall: [{ name: "Wall System D" }], 
-      foundation: [], 
-      civilWork: [{ name: "Bridge System D" }], 
-      internalWetArea: [] 
+        { name: "Roofing System Delta" },
+      ],
+      wall: [{ name: "Wall System D" }],
+      foundation: [],
+      civilWork: [{ name: "Bridge System D" }],
+      internalWetArea: []
     },
+    specifications: [
+      {
+        name: "Roof Spec",
+        dateCreated: "2025-09-25",
+        status: "Final",
+        actions: {
+          view: "/files/roof-spec.pdf",
+          download: "/files/roof-spec.pdf",
+          delete: true
+        }
+      },
+      {
+        name: "Foundation Spec",
+        dateCreated: "2025-09-20",
+        status: "Draft",
+        actions: {
+          view: "/files/foundation-spec.pdf",
+          download: "/files/foundation-spec.pdf",
+          delete: true
+        }
+      }
+    ]
   },
 ]
