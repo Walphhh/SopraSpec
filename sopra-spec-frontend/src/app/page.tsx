@@ -1,14 +1,19 @@
 "use client"
+        
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-
 import "./globals.css"
 import ProjectCard from "@/components/ProjectCard"
 import { Project, mockProjects } from "@/lib/project"
+import { useAuth } from "@/utils/auth-provider";
+import { getBackendUrl } from "@/utils/get-backend-url";
+import axios from "axios";
+import Link from "next/link";
 
 export default function HomePage() {
   const [projects, setProjects] = useState<Project[]>(mockProjects) // Change to integrate with the database later
   const router = useRouter()
+  const { isAuthenticated, logout } = useAuth(); // grab logout from provider
 
   /* Integrate with the database later */
   // useEffect(() => {
@@ -37,8 +42,25 @@ export default function HomePage() {
     ...projects
   ]
 
+  const handleLogout = async () => {
+    try {
+      // call backend logout
+      await axios.post(getBackendUrl("/auth/logout"));
+
+      // clear local tokens + user state
+      logout();
+
+      alert("Logged out successfully!");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
-    <div className="p-6">
+    <div>
+      {isAuthenticated ? (
+        <>
+              <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Welcome to SopraSpec</h1>
       <h4 className="mb-10">Start by Browsing our Systems and Generating Product Specifications</h4>
 
@@ -60,6 +82,23 @@ export default function HomePage() {
       >
         Browse Systems
       </button>
+    </div>
+          <h1>Welcome Authenticated User!</h1>
+          <button
+            className="bg-amber-200 hover:cursor-pointer"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
+          <h1>You are not logged in</h1>
+          <button>
+            <Link href="/auth/login">Login Here</Link>
+          </button>
+        </>
+      )}
     </div>
   )
 }
