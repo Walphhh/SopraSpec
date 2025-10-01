@@ -19,6 +19,7 @@ export default function MyAccountPage() {
 
   useEffect(() => {
     // TODO: Mock loading user profile (replace with API call later)
+
     const userData = {
       firstName: "Test",
       lastName: "User",
@@ -108,7 +109,7 @@ export default function MyAccountPage() {
           );
         })}
 
-        {/* Profile Picture */}
+        {/* Profile Picture
         <div className="flex items-center space-x-4">
           <label className="w-40 font-semibold text-[#0072CE] text-left">
             Profile Picture (optional):
@@ -142,7 +143,7 @@ export default function MyAccountPage() {
               className="ml-2 w-20 h-20 object-cover rounded-full border"
             />
           )}
-        </div>
+        </div> */}
 
         {/* Error message */}
         {error && <p className="text-red-500 font-semibold">{error}</p>}
