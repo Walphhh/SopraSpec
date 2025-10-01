@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Pencil, Upload } from "lucide-react"
+import { useEffect, useState } from "react";
+import { Pencil, Upload } from "lucide-react";
 
 export default function MyAccountPage() {
   const [form, setForm] = useState<any>({
@@ -11,11 +11,11 @@ export default function MyAccountPage() {
     phone: "",
     jobTitle: "",
     profilePicture: "",
-  })
-  const [isModified, setIsModified] = useState(false)
-  const [error, setError] = useState("")
-  const [focusedField, setFocusedField] = useState<string | null>(null)
-  const [missingFields, setMissingFields] = useState<string[]>([])
+  });
+  const [isModified, setIsModified] = useState(false);
+  const [error, setError] = useState("");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
 
   useEffect(() => {
     // TODO: Mock loading user profile (replace with API call later)
@@ -23,47 +23,42 @@ export default function MyAccountPage() {
       firstName: "Test",
       lastName: "User",
       email: "yest.user@email.com",
-      phone: "0400 123 456",
-      jobTitle: "Job Title",
-      profilePicture: "",
-    }
-    setForm(userData)
-  }, [])
+    };
+    setForm(userData);
+  }, []);
 
   const fields = [
     { key: "firstName", label: "First Name", required: true },
     { key: "lastName", label: "Last Name", required: true },
     { key: "email", label: "Email", required: true },
-    { key: "phone", label: "Phone", required: false },
-    { key: "jobTitle", label: "Job Title", required: false },
-  ]
+  ];
 
   const handleChange = (key: string, value: string) => {
-    setForm({ ...form, [key]: value })
-    setIsModified(true)
-    setError("")
-    setMissingFields((prev) => prev.filter((f) => f !== key))
-  }
+    setForm({ ...form, [key]: value });
+    setIsModified(true);
+    setError("");
+    setMissingFields((prev) => prev.filter((f) => f !== key));
+  };
 
   const handleSave = () => {
-    const missing: string[] = []
+    const missing: string[] = [];
     for (const f of fields) {
       if (f.required && !form[f.key]?.trim()) {
-        missing.push(f.key)
+        missing.push(f.key);
       }
     }
 
     if (missing.length > 0) {
-      setError("Please fill in all required fields")
-      setMissingFields(missing)
-      return
+      setError("Please fill in all required fields");
+      setMissingFields(missing);
+      return;
     }
 
-    alert("Profile updated!")
-    setIsModified(false)
-    setError("")
-    setMissingFields([])
-  }
+    alert("Profile updated!");
+    setIsModified(false);
+    setError("");
+    setMissingFields([]);
+  };
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -72,12 +67,17 @@ export default function MyAccountPage() {
 
       <div className="space-y-4">
         {fields.map((f) => {
-          const isError = missingFields.includes(f.key)
+          const isError = missingFields.includes(f.key);
           return (
             <div key={f.key} className="flex items-center space-x-4">
               <label className="w-40 font-semibold text-[#0072CE] text-left">
                 {f.label}{" "}
-                {f.required ? <span className="text-red-500">*</span> : "(optional)"}:
+                {f.required ? (
+                  <span className="text-red-500">*</span>
+                ) : (
+                  "(optional)"
+                )}
+                :
               </label>
               <div className="relative flex-1">
                 <input
@@ -105,7 +105,7 @@ export default function MyAccountPage() {
                 />
               </div>
             </div>
-          )
+          );
         })}
 
         {/* Profile Picture */}
@@ -120,10 +120,10 @@ export default function MyAccountPage() {
             accept="image/*"
             className="hidden"
             onChange={(e) => {
-              const file = e.target.files?.[0]
+              const file = e.target.files?.[0];
               if (file) {
-                const imageUrl = URL.createObjectURL(file)
-                handleChange("profilePicture", imageUrl)
+                const imageUrl = URL.createObjectURL(file);
+                handleChange("profilePicture", imageUrl);
               }
             }}
           />
@@ -161,5 +161,5 @@ export default function MyAccountPage() {
         </button>
       </div>
     </div>
-  )
+  );
 }

@@ -21,7 +21,7 @@ export default function WarrantyPage() {
 
   const areaId = useMemo(() => {
     if (Array.isArray(params?.areaId)) return params.areaId[0];
-    return params?.areaId as string | undefined;
+    return params?.areaId;
   }, [params]);
 
   const areaSlug = useMemo<AreaType | undefined>(() => {
@@ -77,9 +77,7 @@ export default function WarrantyPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h5 className="text-sm font-semibold uppercase text-[#7C878E]">
-          Area
-        </h5>
+        <h5 className="text-sm font-semibold uppercase text-[#7C878E]">Area</h5>
         <h2 className="text-2xl font-bold text-[#0072CE]">{areaLabel}</h2>
         <p className="text-[#7C878E]">Warranty overview for this area</p>
       </div>
@@ -102,7 +100,10 @@ export default function WarrantyPage() {
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
               {warranties.map((warranty, index) => (
-                <tr key={`${warranty.name}-${index}`} className="hover:bg-[#F5FAFF]">
+                <tr
+                  key={`${warranty.name}-${index}`}
+                  className="hover:bg-[#F5FAFF]"
+                >
                   <td className="px-6 py-4 font-medium text-[#0072CE]">
                     {warranty.name}
                   </td>
@@ -125,7 +126,9 @@ export default function WarrantyPage() {
                     >
                       <span
                         className={`h-2 w-2 rounded-full ${
-                          warranty.status === "Active" ? "bg-green-600" : "bg-red-600"
+                          warranty.status === "Active"
+                            ? "bg-green-600"
+                            : "bg-red-600"
                         }`}
                       />
                       {warranty.status}
