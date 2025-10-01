@@ -1,32 +1,34 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { Project, Warranty, AreaType, mockProjects } from "@/lib/projects"
+import { getMockProjectDetail } from "@/lib/projects";
+import type { ProjectDetail, Warranty, AreaType } from "@/utils/types";
+
+function formatAreaLabel(area: AreaType) {
+    return area
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 export default function WarrantyPage() {
-    const { id, area: activeAreaParam } = useParams() as { id: string; area?: string }
-    const [project, setProject] = useState<Project | null>(null)
+    const { id, area: activeAreaParam } = useParams() as { id: string; area?: AreaType }
+    const [project, setProject] = useState<ProjectDetail | null>(null)
 
     useEffect(() => {
-        const found = mockProjects.find(p => p.id === id) || null
-        setProject(found)
+        setProject(getMockProjectDetail(id))
     }, [id])
 
     if (!project) return <div className="p-6">Loading...</div>
+    if (!activeAreaParam) return <div className="p-6 text-red-500">Area not selected</div>
 
-    // cast the area to AreaType
-    const activeArea = activeAreaParam as AreaType
-    const warranties: Warranty[] = activeArea ? project.areas?.[activeArea]?.warranties || [] : []
-
+    const activeArea = project.areas.find((area) => area.areaType === activeAreaParam)
+    const warranties: Warranty[] = activeArea?.warranties ?? []
 
     return (
         <div className="p-6 max-w-6xl mx-auto space-y-6">
             <h5 className="text-left mb-6">
-                Warranty - {activeArea
-                    .replace(/[_-]/g, " ")
-                    .replace(/\b\w/g, c => c.toUpperCase())
-                }
+                Warranty - {formatAreaLabel(activeAreaParam)}
             </h5>
 
             {warranties.length === 0 ? (

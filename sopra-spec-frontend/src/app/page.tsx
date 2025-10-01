@@ -1,17 +1,18 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./globals.css";
 import ProjectCard from "@/components/ProjectCard";
-import { Project, NewProject, mockProjects } from "@/lib/projects"
+import { mockProjects } from "@/lib/projects";
+import type { Project, NewProject } from "@/utils/types";
 import { useAuth } from "@/utils/auth-provider";
 import { getBackendUrl } from "@/utils/get-backend-url";
 import axios from "axios";
 import Link from "next/link";
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects); // Change to integrate with the database later
+  const [projects] = useState<Project[]>(mockProjects); // Change to integrate with the database later
   const router = useRouter();
   const { isAuthenticated, logout, user } = useAuth(); // grab logout from provider
 
@@ -43,21 +44,16 @@ export default function HomePage() {
 
   const handleProjectClick = async (project: Project | NewProject) => {
     if (project.id === "new") {
-      // Navigate to new project creation page
-      router.push(`/specification-generator/new/project-details`);
+      router.push(`/projects/new/project-details`);
     } else {
-      router.push(`/specification-generator/${project.id}/project-details`);
+      router.push(`/projects/${project.id}/project-details`);
     }
   };
 
   const handleLogout = async () => {
     try {
-      // call backend logout
       await axios.post(getBackendUrl("/auth/logout"));
-
-      // clear local tokens + user state
       logout();
-
       alert("Logged out successfully!");
     } catch (error) {
       console.error(error);

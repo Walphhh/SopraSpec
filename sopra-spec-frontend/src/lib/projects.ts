@@ -1,74 +1,165 @@
-export type AreaType =
-  | "roof"
-  | "wall"
-  | "foundation"
-  | "civil_work"
-  | "internal_wet_area"
+﻿import type {
+  AreaType,
+  Project,
+  ProjectArea,
+  ProjectDetail,
+  Warranty,
+  Drawing,
+  System,
+  Specification,
+} from "@/utils/types";
 
-export type Warranty = {
-  name: string
-  areaType: AreaType
-  warrantyPeriod: string
-  issueDate: string
-  expiryDate: string
-  status: "Active" | "Expired"
-  actions?: {
-    view?: string
-    download?: string
-  }
-}
+export type {
+  AreaType,
+  Project,
+  ProjectArea,
+  ProjectDetail,
+  Warranty,
+  Drawing,
+  System,
+  Specification,
+} from "@/utils/types";
 
-export type Drawing = {
-  name: string
-  url: string
-  areaType: AreaType
-}
-
-export type System = {
-  name: string
-  areaType: AreaType
-  // TODO: selected products (???)
-}
-
-export type Specification = {
-  name: string
-  areaType: AreaType
-  dateCreated: string
-  status: "Draft" | "Final" | "Archived"
-  actions?: {
-    view?: string
-    download?: string
-    delete?: boolean
-  }
-}
-
-export interface NewProject {
-  id: string
-  name: string
-  architect: string
-  builder: string
-  installer: string
-  consultant: string
-  preparedBy: string
-  location: string
-  date: string
-  notes?: string
-  thumbnail?: string
-  areas?: {
-    [key in AreaType]?: {
-      warranties?: Warranty[]
-      drawings?: Drawing[]
-      systems?: System[]
-      specifications?: Specification[]
-    }
-  } 
-}
-
-export interface Project extends NewProject {
-  ownerId: string
-}
-
-// ----------------- MOCK DATA -----------------
+const projectAreasByProject: Record<string, ProjectArea[]> = {
+  "1": [
+    {
+      id: "1-roof",
+      projectId: "1",
+      name: "Roof Area",
+      areaType: "roof",
+      systemStackId: "stack-roof-1",
+      status: "Draft",
+      drawing: "",
+      warranties: [
+        {
+          name: "Roofing Warranty",
+          areaType: "roof",
+          warrantyPeriod: "15 years",
+          issueDate: "2025-01-01",
+          expiryDate: "2040-01-01",
+          status: "Active",
+          actions: { view: "/warr/roof.pdf", download: "/warr/roof.pdf" },
+        },
+      ],
+      drawings: [{ name: "Roof Plan", url: "", areaType: "roof" }],
+      systems: [{ name: "Roofing System A", areaType: "roof" }],
+      specifications: [
+        {
+          name: "Roof Spec",
+          areaType: "roof",
+          dateCreated: "2025-01-10",
+          status: "Draft",
+          actions: {
+            view: "/specs/roof.pdf",
+            download: "/specs/roof.pdf",
+            delete: true,
+          },
+        },
+      ],
+    },
+    {
+      id: "1-wall",
+      projectId: "1",
+      name: "Wall Area",
+      areaType: "wall",
+      systemStackId: "stack-wall-1",
+      status: "Final",
+      drawing: "",
+      warranties: [
+        {
+          name: "Wall Warranty",
+          areaType: "wall",
+          warrantyPeriod: "20 years",
+          issueDate: "2000-01-01",
+          expiryDate: "2020-01-01",
+          status: "Expired",
+          actions: { view: "/warr/wall.pdf", download: "/warr/wall.pdf" },
+        },
+      ],
+      drawings: [{ name: "Wall Elevation", url: "", areaType: "wall" }],
+      systems: [{ name: "Wall System A", areaType: "wall" }],
+      specifications: [
+        {
+          name: "Wall Spec",
+          areaType: "wall",
+          dateCreated: "2025-01-15",
+          status: "Final",
+          actions: {
+            view: "/specs/wall.pdf",
+            download: "/specs/wall.pdf",
+            delete: true,
+          },
+        },
+      ],
+    },
+  ],
+  "2": [
+    {
+      id: "2-foundation",
+      projectId: "2",
+      name: "Foundation Area",
+      areaType: "foundation",
+      systemStackId: "stack-foundation-2",
+      status: "Final",
+      drawing: "",
+      warranties: [
+        {
+          name: "Foundation Warranty",
+          areaType: "foundation",
+          warrantyPeriod: "20 years",
+          issueDate: "2020-01-01",
+          expiryDate: "2040-01-01",
+          status: "Active",
+          actions: {
+            view: "/warr/foundation.pdf",
+            download: "/warr/foundation.pdf",
+          },
+        },
+      ],
+      drawings: [{ name: "Foundation Plan", url: "", areaType: "foundation" }],
+      systems: [{ name: "Foundation System B", areaType: "foundation" }],
+      specifications: [
+        {
+          name: "Foundation Spec",
+          areaType: "foundation",
+          dateCreated: "2025-02-01",
+          status: "Final",
+          actions: {
+            view: "/specs/foundation.pdf",
+            download: "/specs/foundation.pdf",
+            delete: true,
+          },
+        },
+      ],
+    },
+  ],
+  "3": [
+    {
+      id: "3-civil",
+      projectId: "3",
+      name: "Civil Works",
+      areaType: "civil_work",
+      systemStackId: "stack-civil-3",
+      status: "Draft",
+      drawing: "",
+      drawings: [{ name: "Civil Work Plan", url: "", areaType: "civil_work" }],
+      systems: [{ name: "Civil System C", areaType: "civil_work" }],
+      specifications: [
+        {
+          name: "Civil Spec",
+          areaType: "civil_work",
+          dateCreated: "2025-03-10",
+          status: "Draft",
+          actions: {
+            view: "/specs/civil.pdf",
+            download: "/specs/civil.pdf",
+            delete: true,
+          },
+        },
+      ],
+    },
+  ],
+};
 
 export const mockProjects: Project[] = [
   {
@@ -84,56 +175,7 @@ export const mockProjects: Project[] = [
     date: "2025-09-30",
     notes: "Initial notes for Project A",
     thumbnail: "",
-    areas: {
-      roof: {
-        warranties: [
-          {
-            name: "Roofing Warranty",
-            areaType: "roof",
-            warrantyPeriod: "15 years",
-            issueDate: "2025-01-01",
-            expiryDate: "2040-01-01",
-            status: "Active",
-            actions: { view: "/warr/roof.pdf", download: "/warr/roof.pdf" },
-          },
-        ],
-        drawings: [{ name: "Roof Plan", url: "", areaType: "roof" }],
-        systems: [{ name: "Roofing System A", areaType: "roof" }],
-        specifications: [
-          {
-            name: "Roof Spec",
-            areaType: "roof",
-            dateCreated: "2025-01-10",
-            status: "Draft",
-            actions: { view: "/specs/roof.pdf", download: "/specs/roof.pdf", delete: true },
-          },
-        ],
-      },
-      wall: {
-        warranties: [
-          {
-            name: "Wall Warranty",
-            areaType: "wall",
-            warrantyPeriod: "20 years",
-            issueDate: "2000-01-01",
-            expiryDate: "2020-01-01",
-            status: "Expired",
-            actions: { view: "/warr/wall.pdf", download: "/warr/wall.pdf" },
-          },
-        ],
-        drawings: [{ name: "Wall Elevation", url: "", areaType: "wall" }],
-        systems: [{ name: "Wall System A", areaType: "wall" }],
-        specifications: [
-          {
-            name: "Wall Spec",
-            areaType: "wall",
-            dateCreated: "2025-01-15",
-            status: "Final",
-            actions: { view: "/specs/wall.pdf", download: "/specs/wall.pdf", delete: true },
-          },
-        ],
-      },
-    },
+    warranties: [],
   },
   {
     id: "2",
@@ -148,32 +190,7 @@ export const mockProjects: Project[] = [
     date: "2025-08-15",
     notes: "Initial notes for Project B",
     thumbnail: "",
-    areas: {
-      foundation: {
-        warranties: [
-          {
-            name: "Foundation Warranty",
-            areaType: "foundation",
-            warrantyPeriod: "20 years",
-            issueDate: "2020-01-01",
-            expiryDate: "2040-01-01",
-            status: "Active",
-            actions: { view: "/warr/foundation.pdf", download: "/warr/foundation.pdf" },
-          },
-        ],
-        drawings: [{ name: "Foundation Plan", url: "", areaType: "foundation" }],
-        systems: [{ name: "Foundation System B", areaType: "foundation" }],
-        specifications: [
-          {
-            name: "Foundation Spec",
-            areaType: "foundation",
-            dateCreated: "2025-02-01",
-            status: "Final",
-            actions: { view: "/specs/foundation.pdf", download: "/specs/foundation.pdf", delete: true },
-          },
-        ],
-      },
-    },
+    warranties: [],
   },
   {
     id: "3",
@@ -188,20 +205,19 @@ export const mockProjects: Project[] = [
     date: "2025-07-20",
     notes: "Project C notes",
     thumbnail: "",
-    areas: {
-      civil_work: {
-        drawings: [{ name: "Civil Work Plan", url: "", areaType: "civil_work" }],
-        systems: [{ name: "Civil System C", areaType: "civil_work" }],
-        specifications: [
-          {
-            name: "Civil Spec",
-            areaType: "civil_work",
-            dateCreated: "2025-03-10",
-            status: "Draft",
-            actions: { view: "/specs/civil.pdf", download: "/specs/civil.pdf", delete: true },
-          },
-        ],
-      },
-    },
+    warranties: [],
   },
-]
+];
+
+export const mockProjectDetails: ProjectDetail[] = mockProjects.map((project) => ({
+  ...project,
+  areas: projectAreasByProject[project.id] ?? [],
+}));
+
+export function getMockProjectDetail(projectId: string): ProjectDetail | null {
+  return mockProjectDetails.find((project) => project.id === projectId) ?? null;
+}
+
+export function listMockProjectAreas(projectId: string): ProjectArea[] {
+  return projectAreasByProject[projectId] ?? [];
+}

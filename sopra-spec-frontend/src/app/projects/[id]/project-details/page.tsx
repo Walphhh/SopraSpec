@@ -1,10 +1,11 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { Upload, Pencil } from "lucide-react"
 import { useRouter, useParams } from "next/navigation"
-import { Project, mockProjects } from "@/lib/projects"
+import { mockProjects } from "@/lib/projects";
+import type { Project } from "@/utils/types";
 
 export default function ProjectDetailsPage() {
     const router = useRouter()

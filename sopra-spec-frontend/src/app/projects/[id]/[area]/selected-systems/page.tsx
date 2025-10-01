@@ -1,27 +1,38 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Plus, FileText, CircleX } from "lucide-react"
-import { Project, System, mockProjects, AreaType } from "@/lib/projects"
+import { getMockProjectDetail } from "@/lib/projects";
+import type { ProjectDetail, System, AreaType, ProjectArea } from "@/utils/types";
+
+function formatAreaLabel(area: AreaType) {
+    return area
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function buildArea(project: ProjectDetail, areaType: AreaType): ProjectArea {
+    const name = formatAreaLabel(areaType)
+    return {
+        id: `${project.id}-${areaType}`,
+        projectId: project.id,
+        name,
+        areaType,
+        systemStackId: `${project.id}-${areaType}-stack`,
+        status: "Draft",
+        systems: [],
+    }
+}
 
 export default function SelectedSystemsPage() {
     const router = useRouter()
     const { id, area } = useParams() as { id: string; area?: AreaType }
-    const [project, setProject] = useState<Project | null>(null)
+    const [project, setProject] = useState<ProjectDetail | null>(null)
 
     useEffect(() => {
-        const found = mockProjects.find(p => p.id === id) || null
-        setProject(found)
+        setProject(getMockProjectDetail(id))
     }, [id])
-
-    const areas: { key: AreaType; label: string }[] = [
-        { key: "roof", label: "Roof" },
-        { key: "wall", label: "Wall" },
-        { key: "foundation", label: "Foundation" },
-        { key: "civil_work", label: "Civil Work" },
-        { key: "internal_wet_area", label: "Internal Wet Area" },
-    ]
 
     const handleGenerateSpec = (system: System) => {
         alert(`Generate specification for ${system.name}`)
@@ -30,38 +41,30 @@ export default function SelectedSystemsPage() {
     const handleRemoveSystem = (index: number) => {
         if (!confirm("Are you sure you want to remove this system?")) return
 
-        setProject(prev => {
-            if (!prev || !area) return prev
-            const currentAreas = prev.areas || {}
-            const areaSystems = currentAreas[area]?.systems || []
-            const updatedSystems = [...areaSystems]
-            updatedSystems.splice(index, 1)
-
-            return {
-                ...prev,
-                areas: {
-                    ...currentAreas,
-                    [area]: {
-                        ...currentAreas[area],
-                        systems: updatedSystems,
-                    },
-                },
-            }
+        setProject((prev) => {
+            if (!prev) return prev
+            const existingIndex = prev.areas.findIndex((item) => item.areaType === area)
+            if (existingIndex === -1) return prev
+            const target = prev.areas[existingIndex]
+            const systems = (target.systems ?? []).filter((_, i) => i !== index)
+            const updatedArea = { ...target, systems }
+            const projectAreas = [...prev.areas]
+            projectAreas[existingIndex] = updatedArea
+            return { ...prev, areas: projectAreas }
         })
     }
 
     if (!project) return <div className="p-6">Loading...</div>
     if (!area) return <div className="p-6 text-red-500">Area not selected</div>
 
-    const systemsList: System[] = project.areas?.[area]?.systems || []
+    const existingIndex = project.areas.findIndex((item) => item.areaType === area)
+    const activeArea = existingIndex >= 0 ? project.areas[existingIndex] : buildArea(project, area)
+    const systemsList: System[] = activeArea.systems ?? []
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6">
             <h5 className="text-left mb-6">
-                Selected Systems - {area
-                    .replace(/[_-]/g, " ")
-                    .replace(/\b\w/g, c => c.toUpperCase())
-                }
+                Selected Systems - {formatAreaLabel(area)}
             </h5>
 
             {/* Add system button */}

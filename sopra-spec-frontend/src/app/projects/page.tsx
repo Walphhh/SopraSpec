@@ -1,12 +1,13 @@
-"use client";
-import { useEffect, useState } from "react";
+﻿"use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ProjectCard from "@/components/ProjectCard";
-import { Project, mockProjects } from "@/lib/projects";
+import { mockProjects } from "@/lib/projects";
+import type { Project, NewProject } from "@/utils/types";
 
 export default function SpecificationGeneratorPage() {
-    const [projects, setProjects] = useState<Project[]>(mockProjects); // change to integrate with the database later
+    const [projects] = useState<Project[]>(mockProjects); // change to integrate with the database later
     const router = useRouter();
 
     /* TODO: Integrate with the database later */
@@ -16,22 +17,20 @@ export default function SpecificationGeneratorPage() {
     //         .then(setProjects)
     // }, [])
 
-    // Add default "New Project" card
-    const allProjects: Project[] = [
-        {
-            id: "new",
-            name: "New Project",
-            architect: "",
-            builder: "",
-            installer: "",
-            consultant: "",
-            preparedBy: "",
-            location: "",
-            date: "",
-            notes: "",
-            thumbnail: "",
-            ownerId: "dummy-owner",
-        },
+    const newProjectPlaceholder: NewProject = {
+        id: "new",
+        name: "New Project",
+        architect: "",
+        builder: "",
+        installer: "",
+        consultant: "",
+        preparedBy: "",
+        location: "",
+        date: "",
+    };
+
+    const allProjects: (Project | NewProject)[] = [
+        newProjectPlaceholder,
         ...projects,
     ];
 
@@ -52,7 +51,7 @@ export default function SpecificationGeneratorPage() {
                             project={project}
                             onClick={() =>
                                 router.push(
-                                    `/specification-generator/${isNewProject ? "new" : project.id
+                                    `/projects/${isNewProject ? "new" : project.id
                                     }/project-details`
                                 )
                             }

@@ -1,67 +1,84 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useRef } from "react"
 import { Upload, CircleX, X } from "lucide-react"
 import { useParams } from "next/navigation"
-import { Project, Drawing, mockProjects, AreaType } from "@/lib/projects"
+import { getMockProjectDetail } from "@/lib/projects";
+import type { ProjectDetail, Drawing, AreaType, ProjectArea } from "@/utils/types";
+
+function formatAreaLabel(area: AreaType) {
+    return area
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function buildArea(project: ProjectDetail, areaType: AreaType): ProjectArea {
+    const name = formatAreaLabel(areaType)
+    return {
+        id: `${project.id}-${areaType}`,
+        projectId: project.id,
+        name,
+        areaType,
+        systemStackId: `${project.id}-${areaType}-stack`,
+        status: "Draft",
+        drawings: [],
+    }
+}
 
 export default function DrawingsPage() {
     const { id, area } = useParams() as { id: string; area?: AreaType }
-    const [project, setProject] = useState<Project | null>(null)
+    const [project, setProject] = useState<ProjectDetail | null>(null)
     const [zoomedDrawing, setZoomedDrawing] = useState<Drawing | null>(null)
     const modalRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const found = mockProjects.find(p => p.id === id) || null
-        setProject(found)
+        setProject(getMockProjectDetail(id))
     }, [id])
 
     if (!project) return <div className="p-6">Loading...</div>
     if (!area) return <div className="p-6 text-red-500">Area not selected</div>
 
-    const currentDrawings: Drawing[] = project.areas?.[area]?.drawings || []
+    const areaIndex = project.areas.findIndex((item) => item.areaType === area)
+    const activeArea = areaIndex >= 0 ? project.areas[areaIndex] : null
+    const currentDrawings: Drawing[] = activeArea?.drawings ?? []
 
     const handleUpload = (file: File) => {
         const fileUrl = URL.createObjectURL(file)
         const newDrawing: Drawing = { name: file.name, url: fileUrl, areaType: area }
 
-        setProject(prev => {
-            if (!prev || !area) return prev
-            const currentAreas = prev.areas || {}
-            const areaDrawings = currentAreas[area]?.drawings || []
+        setProject((prev) => {
+            if (!prev) return prev
 
-            return {
-                ...prev,
-                areas: {
-                    ...currentAreas,
-                    [area]: {
-                        ...currentAreas[area],
-                        drawings: [...areaDrawings, newDrawing],
-                    },
-                },
+            const existingIndex = prev.areas.findIndex((item) => item.areaType === area)
+            if (existingIndex === -1) {
+                const newArea = buildArea(prev, area)
+                const updatedArea = { ...newArea, drawings: [newDrawing] }
+                return { ...prev, areas: [...prev.areas, updatedArea] }
             }
+
+            const target = prev.areas[existingIndex]
+            const drawings = [...(target.drawings ?? []), newDrawing]
+            const updatedArea = { ...target, drawings }
+            const areas = [...prev.areas]
+            areas[existingIndex] = updatedArea
+            return { ...prev, areas }
         })
     }
 
     const handleDelete = (index: number) => {
         if (!confirm("Are you sure you want to delete this drawing?")) return
 
-        setProject(prev => {
-            if (!prev || !area) return prev
-            const currentAreas = prev.areas || {}
-            const areaDrawings = currentAreas[area]?.drawings || []
-            const updatedDrawings = areaDrawings.filter((_, i) => i !== index)
-
-            return {
-                ...prev,
-                areas: {
-                    ...currentAreas,
-                    [area]: {
-                        ...currentAreas[area],
-                        drawings: updatedDrawings,
-                    },
-                },
-            }
+        setProject((prev) => {
+            if (!prev) return prev
+            const existingIndex = prev.areas.findIndex((item) => item.areaType === area)
+            if (existingIndex === -1) return prev
+            const target = prev.areas[existingIndex]
+            const current = target.drawings ?? []
+            const drawings = current.filter((_, i) => i !== index)
+            const updatedArea = { ...target, drawings }
+            const areas = [...prev.areas]
+            areas[existingIndex] = updatedArea
+            return { ...prev, areas }
         })
     }
 
@@ -72,10 +89,7 @@ export default function DrawingsPage() {
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-6">
             <h5 className="text-left mb-6">
-                Drawings / Site Plans - {area
-                    .replace(/[_-]/g, " ") 
-                    .replace(/\b\w/g, c => c.toUpperCase())
-                }
+                Drawings / Site Plans - {formatAreaLabel(area)}
             </h5>
 
             {/* Upload button */}
@@ -84,7 +98,7 @@ export default function DrawingsPage() {
                     id="upload-file"
                     type="file"
                     className="hidden"
-                    onChange={e => {
+                    onChange={(e) => {
                         const file = e.target.files?.[0]
                         if (file) handleUpload(file)
                         e.target.value = "" // reset input

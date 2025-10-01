@@ -1,20 +1,14 @@
-"use client";
+﻿"use client";
 
 import { FolderKanban, FolderPlus } from "lucide-react";
+import type { Project, NewProject } from "@/utils/types";
 
-export type Project = {
-    id: string;
-    name: string;
-    thumbnail?: string;
+type ProjectCardProps = {
+    project: Project | NewProject;
+    onClick: () => void;
 };
 
-export default function ProjectCard({
-    project,
-    onClick,
-}: {
-    project: Project;
-    onClick: () => void;
-}) {
+export default function ProjectCard({ project, onClick }: ProjectCardProps) {
     const isNewProject = project.id === "new";
 
     return (

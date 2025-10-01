@@ -1,8 +1,11 @@
-export type Project = {
-    id: string;
-    name: string;
-    location?: string;
-    architect?: string;
-    builder?: string;
-  };
-  
+﻿export type {
+  Project,
+  ProjectDetail,
+  ProjectArea,
+  AreaType,
+  Specification,
+  System,
+  Drawing,
+  Warranty,
+  NewProject,
+} from "@/utils/types";
