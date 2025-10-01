@@ -1,17 +1,3 @@
-﻿export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  createdAt: string;
-}
-
-export interface SessionPayload {
-  token: string;
-  refresh_token: string;
-  user_information: User;
-  user?: any; // Supabase user payload remains untyped for now
-}
-
 export type AreaType =
   | "roof"
   | "wall"
@@ -22,31 +8,31 @@ export type AreaType =
 export type WarrantyStatus = "Active" | "Expired";
 export type SpecificationStatus = "Draft" | "Final" | "Archived";
 
-export interface FileActionLinks {
+export type FileActionLinks = {
   view?: string;
   download?: string;
   delete?: boolean;
-}
+};
 
 export interface Warranty {
   name: string;
+  areaType: AreaType;
   warrantyPeriod: string;
   issueDate: string;
   expiryDate: string;
   status: WarrantyStatus;
-  areaType?: AreaType;
   actions?: Omit<FileActionLinks, "delete">;
 }
 
 export interface Drawing {
   name: string;
   url: string;
-  areaType?: AreaType;
+  areaType: AreaType;
 }
 
 export interface System {
   name: string;
-  areaType?: AreaType;
+  areaType: AreaType;
 }
 
 export interface Specification {
@@ -63,7 +49,7 @@ export interface ProjectArea {
   projectId: string;
   systemStackId: string;
   name: string;
-  drawing?: string; // url for the drawing
+  drawing?: string;
   status: SpecificationStatus;
   actions?: FileActionLinks;
   warranties?: Warranty[];

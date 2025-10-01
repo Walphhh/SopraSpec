@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import LoginForm from "./LoginForm";
+import LoginForm from "./components/LoginForm";
 
 export default function Page() {
   return (

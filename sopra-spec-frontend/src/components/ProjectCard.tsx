@@ -1,31 +1,26 @@
-"use client"
+﻿"use client";
 
-import { FolderKanban, FolderPlus } from "lucide-react"
+import { FolderKanban, FolderPlus } from "lucide-react";
+import type { Project, NewProject } from "@/utils/types";
 
-export type Project = {
-    id: string
-    name: string
-    thumbnail?: string
-    isNew?: boolean
-}
+type ProjectCardProps = {
+    project: Project | NewProject;
+    onClick: () => void;
+};
 
-export default function ProjectCard({
-    project,
-    onClick,
-}: {
-    project: Project
-    onClick: () => void
-}) {
+export default function ProjectCard({ project, onClick }: ProjectCardProps) {
+    const isNewProject = project.id === "new";
+
     return (
         <div
             onClick={onClick}
             className="
-                group cursor-pointer w-[250px] h-[250px] flex flex-col items-center justify-center
-                rounded-lg bg-[#E2E2E2]
-                hover:bg-[#0072CE]
-            "
+        group cursor-pointer w-[250px] h-[250px] flex flex-col items-center justify-center
+        rounded-lg bg-[#E2E2E2]
+        hover:bg-[#0072CE]
+      "
         >
-            {project.isNew ? (
+            {isNewProject ? (
                 <div className="flex items-center justify-center mb-2">
                     <FolderPlus
                         size={150}
@@ -45,9 +40,10 @@ export default function ProjectCard({
                         className="text-[#0072CE] group-hover:text-white"
                     />
                 </div>
-            )
-            }
-            < h2 className="text-center font-semibold group-hover:!text-white">{project.name}</h2>
-        </div >
-    )
+            )}
+            <h2 className="text-center font-semibold group-hover:!text-white">
+                {project.name}
+            </h2>
+        </div>
+    );
 }

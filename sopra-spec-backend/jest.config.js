@@ -4,4 +4,7 @@ module.exports = {
   moduleNameMapper: {
     "^@src/(.*)$": "<rootDir>/src/$1",
   },
+  collectCoverage: true,
+  coverageReporters: ["text", "lcov", "html"], // “text” prints to the CLI\
+  reporters: ["default", "jest-spec-reporter"],
 };
