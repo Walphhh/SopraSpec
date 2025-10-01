@@ -16,7 +16,7 @@ export default async function AreaDetailPage({
   return (
     <div className="p-6 text-[#7C878E]">
       <p>
-        Area details for{' '}
+        Area details for{" "}
         <span className="font-semibold text-[#0072CE]">{area.name}</span> will
         appear here.
       </p>

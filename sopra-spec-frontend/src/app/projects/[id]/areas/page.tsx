@@ -1,7 +1,7 @@
 ﻿import Link from "next/link";
 import { Filter, PlusSquare } from "lucide-react";
 import { getMockProjectDetail } from "@/lib/projects";
-import type { AreaType, ProjectArea } from "@/utils/types";
+import type { ProjectArea, AreaType } from "@/utils/types";
 
 const areaTypeLabel: Record<AreaType, string> = {
   roof: "Roof",
@@ -77,15 +77,35 @@ export default async function AreasPage({
                       {area.name}
                     </Link>
                   </td>
-                  <td className="px-6 py-4 text-[#475569]">{areaTypeLabel[area.areaType]}</td>
-                  <td className="px-6 py-4 text-[#475569]">{formatDrawingCell(area)}</td>
-                  <td className="px-6 py-4 text-[#475569]">{formatWarrantyCell(area)}</td>
+                  <td className="px-6 py-4 text-[#475569]">
+                    {areaTypeLabel[area.areaType]}
+                  </td>
+                  <td className="px-6 py-4 text-[#475569]">
+                    {formatDrawingCell(area)}
+                  </td>
+                  <td className="px-6 py-4 text-[#475569]">
+                    {formatWarrantyCell(area)}
+                  </td>
                   <td className="px-6 py-4 text-[#475569]">{area.status}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-[#0072CE]">
-                      <span className={specActions.view ? "hover:underline" : "opacity-50"}>View</span>
+                      <span
+                        className={
+                          specActions.view ? "hover:underline" : "opacity-50"
+                        }
+                      >
+                        View
+                      </span>
                       <span className="text-[#B3C7D6]">|</span>
-                      <span className={specActions.download ? "hover:underline" : "opacity-50"}>Download</span>
+                      <span
+                        className={
+                          specActions.download
+                            ? "hover:underline"
+                            : "opacity-50"
+                        }
+                      >
+                        Download
+                      </span>
                     </div>
                   </td>
                 </tr>

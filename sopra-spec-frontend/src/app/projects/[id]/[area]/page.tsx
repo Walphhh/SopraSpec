@@ -3,8 +3,12 @@
 /* TODO: delete (??) */
 import { useParams } from "next/navigation";
 
-export default function AreaPage() {
-  const { id: projectId, area, section } = useParams() as {
+export default async function AreaPage() {
+  const {
+    id: projectId,
+    area,
+    section,
+  } = (await useParams()) as {
     id: string;
     area: string;
     section: "warranty" | "drawings" | "selected-systems" | "specification";
