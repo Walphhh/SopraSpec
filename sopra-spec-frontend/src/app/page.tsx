@@ -54,7 +54,7 @@ export default function HomePage() {
     try {
       await axios.post(getBackendUrl("/auth/logout"));
       logout();
-      alert("Logged out successfully!");
+      router.push("/");
     } catch (error) {
       console.error(error);
     }
@@ -96,14 +96,21 @@ export default function HomePage() {
               Logout
             </button>
           </div>
-        </>
-      ) : (
-        <>
-          <h1>You are not logged in</h1>
-          <button>
-            <Link href="/auth/login">Login Here</Link>
+
+          <button
+            className="p-3 rounded-sm bg-[#0072CE] text-black hover:cursor-pointer"
+            onClick={handleLogout}
+          >
+            Logout
           </button>
         </>
+      ) : (
+        <div className="flex flex-col items-center justify-center">
+          <h1>You are not logged in</h1>
+          <button className="p-3 rounded-sm bg-[#0072CE] text-black">
+            <Link href="/auth/login">Login Here</Link>
+          </button>
+        </div>
       )}
     </div>
   );
