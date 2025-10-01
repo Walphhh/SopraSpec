@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { Filter, PlusSquare } from "lucide-react";
-import { getMockProjectDetail } from "@/lib/projects";
+
+import { fetchProjectById } from "@/lib/api/projects";
 import type { ProjectArea, AreaType } from "@/utils/types";
 
 const areaTypeLabel: Record<AreaType, string> = {
@@ -28,8 +29,8 @@ const formatSpecificationCell = (area: ProjectArea) => {
   if (specs.length === 0) return { view: false, download: false };
   const actions = specs[0].actions ?? {};
   return {
-    view: Boolean(actions.view),
-    download: Boolean(actions.download),
+    view: Boolean(actions?.view),
+    download: Boolean(actions?.download),
   };
 };
 
@@ -39,7 +40,7 @@ export default async function AreasPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = getMockProjectDetail(id);
+  const project = await fetchProjectById(id);
 
   if (!project) {
     return <div className="p-6 text-red-500">Project not found.</div>;

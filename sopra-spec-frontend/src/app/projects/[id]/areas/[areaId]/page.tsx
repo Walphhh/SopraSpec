@@ -1,4 +1,5 @@
-﻿import { getMockProjectDetail } from "@/lib/projects";
+﻿import { fetchProjectById } from "@/lib/api/projects";
+import WarrantyPage from "./components/Warranty";
 
 export default async function AreaDetailPage({
   params,
@@ -6,7 +7,7 @@ export default async function AreaDetailPage({
   params: Promise<{ id: string; areaId: string }>;
 }) {
   const { id, areaId } = await params;
-  const project = getMockProjectDetail(id);
+  const project = await fetchProjectById(id);
   const area = project?.areas.find((item) => item.id === areaId);
 
   if (!project || !area) {
@@ -20,6 +21,8 @@ export default async function AreaDetailPage({
         <span className="font-semibold text-[#0072CE]">{area.name}</span> will
         appear here.
       </p>
+
+      <WarrantyPage />
     </div>
   );
 }

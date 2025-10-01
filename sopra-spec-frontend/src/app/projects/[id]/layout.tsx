@@ -1,18 +1,20 @@
-﻿import Link from "next/link";
-import { getMockProjectDetail } from "@/lib/projects";
+﻿import type { ReactNode } from "react";
+import Link from "next/link";
+
+import { fetchProjectById } from "@/lib/api/projects";
 import ProjectSpecNavBar from "./components/ProjectSpecNavBar";
 
 export default async function SpecLayout({
   children,
   params,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   params: Promise<{ id: string; areaId?: string; area?: string }>;
 }) {
   const routeParams = await params;
   const { id, areaId, area } = routeParams;
 
-  const projectDetail = getMockProjectDetail(id);
+  const projectDetail = await fetchProjectById(id);
 
   if (!projectDetail) {
     return <div className="p-4 text-red-500">Project not found</div>;

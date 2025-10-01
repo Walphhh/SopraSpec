@@ -1,35 +1,36 @@
-'use client';
-import { Project, ProjectDetail } from '@/features/common/types';
-import { mockProjects, mockProjectDetails } from '@/lib/projects';
+﻿"use client";
 
-function buildProject(partial: Partial<Project>): Project {
-  return {
-    id: partial.id ?? 'new-project',
-    ownerId: partial.ownerId ?? 'owner-placeholder',
-    name: partial.name ?? 'Untitled Project',
-    architect: partial.architect ?? '',
-    builder: partial.builder ?? '',
-    installer: partial.installer ?? '',
-    consultant: partial.consultant ?? '',
-    preparedBy: partial.preparedBy ?? '',
-    location: partial.location ?? '',
-    date: partial.date ?? new Date().toISOString().split('T')[0],
-    notes: partial.notes,
-    thumbnail: partial.thumbnail,
-    warranties: partial.warranties ?? [],
-  };
-}
+import { useCallback } from "react";
+
+import type { AreaType, NewProject, Project, ProjectArea, ProjectDetail, SpecificationStatus } from "@/utils/types";
+import {
+  fetchProjects,
+  fetchProjectById,
+  fetchProjectAreas,
+  createProject,
+  deleteProject,
+  createProjectArea,
+} from "@/lib/api/projects";
 
 export function useProjects() {
-  // TODO: connect to API/Supabase
-  const list = async (): Promise<Project[]> => Promise.resolve(mockProjects);
-  const get = async (id: string): Promise<ProjectDetail | null> =>
-    Promise.resolve(mockProjectDetails.find((project) => project.id === id) ?? null);
-  const create = async (project: Partial<Project>) => Promise.resolve(buildProject(project));
-  const update = async (id: string, project: Partial<Project>) => {
-    void id;
-    void project;
-    return Promise.resolve(true);
-  };
-  return { list, get, create, update };
+  const list = useCallback((ownerId?: string): Promise<Project[]> => fetchProjects(ownerId), []);
+  const get = useCallback((id: string): Promise<ProjectDetail | null> => fetchProjectById(id), []);
+  const listAreas = useCallback(
+    (projectId: string): Promise<ProjectArea[]> => fetchProjectAreas(projectId),
+    []
+  );
+  const create = useCallback(
+    (payload: NewProject & { ownerId: string }): Promise<Project> => createProject(payload),
+    []
+  );
+  const remove = useCallback((id: string): Promise<boolean> => deleteProject(id), []);
+  const createArea = useCallback(
+    (
+      projectId: string,
+      payload: { name: string; areaType: AreaType; drawing?: string; systemStackId?: string; status?: SpecificationStatus }
+    ): Promise<ProjectArea> => createProjectArea(projectId, payload),
+    []
+  );
+
+  return { list, get, listAreas, create, remove, createArea };
 }
