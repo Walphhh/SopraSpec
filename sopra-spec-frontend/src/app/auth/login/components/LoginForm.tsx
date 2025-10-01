@@ -98,7 +98,7 @@ export default function LoginForm() {
       <p className="text-center text-[#8C99A5]">Don’t have an account?</p>
 
       <Link
-        href="/signup"
+        href="/auth/signup"
         className="mx-auto block w-40 rounded-lg bg-[#76828B] py-2 text-center text-white hover:opacity-90"
       >
         Sign Up
