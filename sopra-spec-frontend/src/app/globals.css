@@ -124,13 +124,17 @@ p {
   background-color: #D50000; /* Red */
 }
 
-.custom-table td.actions a:hover {
+.custom-table td.actions a:hover,
+.custom-table td.actions button:hover {
   color: #0072CE;
   text-decoration: underline;
 }
 
-.custom-table td.actions a + a::before {
+.custom-table td.actions a + a::before,
+.custom-table td.actions a + button::before,
+.custom-table td.actions button + a::before,
+.custom-table td.actions button + button::before {
   content: "|";
   color: #7C878E;
-  padding: 0px 10px 0px 10px;
+  padding: 0px 10px;
 }

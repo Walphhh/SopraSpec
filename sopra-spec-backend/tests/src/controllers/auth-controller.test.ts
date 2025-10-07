@@ -2,15 +2,27 @@ import Auth from "@src/controllers/auth-controller";
 import supabase from "@src/config/supabase-client"; // this will be mocked
 import { getStatusMessage, Status } from "@src/utils/status-codes";
 
-jest.mock("@src/config/supabase-client", () => ({
-  __esModule: true, // if supabase-client is an ES module
-  default: {
-    auth: {
-      signInWithPassword: jest.fn(),
-      signOut: jest.fn(),
+jest.mock("@src/config/supabase-client", () => {
+  const mockFrom = {
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue({ data: null, error: null }),
+    insert: jest.fn().mockReturnThis(),
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      auth: {
+        signInWithPassword: jest.fn(),
+        signOut: jest.fn(),
+        signUp: jest.fn(),
+        refreshSession: jest.fn(),
+      },
+      from: jest.fn(() => mockFrom),
     },
-  },
-}));
+  };
+});
 
 // helper mocks for req/res
 const mockRequest = (body = {}) => ({ body } as any);
@@ -42,7 +54,10 @@ describe("Sign In with Password test suite", () => {
       error: null,
     });
 
-    const req = mockRequest({ email: "ttduc002@yahoo.com", password: "abc123" });
+    const req = mockRequest({
+      email: "ttduc002@yahoo.com",
+      password: "abc123",
+    });
     const res = mockResponse();
 
     await Auth.signInWithPassword(req, res);
@@ -62,6 +77,7 @@ describe("Sign In with Password test suite", () => {
         email: "ttduc002@yahoo.com",
         role: "authenticated",
       },
+      user_information: null, // 👈 must include this
     });
   });
 
@@ -112,7 +128,7 @@ describe("Sign In with Password test suite", () => {
     await Auth.signInWithPassword(req, res);
 
     expect(res.status).toHaveBeenCalledTimes(1);
-    expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST); 
+    expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
   });
 
   it("Should return status 400 if an error occurs", async () => {
