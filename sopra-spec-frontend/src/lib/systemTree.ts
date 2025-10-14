@@ -6,70 +6,942 @@ export type TreeNode = {
     options?: Record<string, TreeNode>
 }
 
-// ---------- Helpers (factories) ----------
-function makeSubstrate(name: string, image: string, description: string, fit: "cover" | "contain"): TreeNode {
-    return {
-        label: name,
-        image,
-        description,
-        fit,
-        options: {
-            bitumen: makeMembrane("Bitumen", "/roof-membranes/roof-bitumen.png", "Select whether the Roof System is Insulated or Not", "contain"),
-            synthetic: makeMembrane("Synthetic", "/roof-membranes/roof-synthetic.png", "Select whether the Roof System is Insulated or Not", "contain"),
+// ---------- Roof Tree Enduroflex ----------
+const roofTreeEnduroflex: TreeNode = {
+    label: "Roof",
+    image: "/areas/roof.jpg",
+    description: "Select Project Type",
+    options: {
+        "new-build": {
+            label: "New Build",
+            image: "/roof-project-types/new-build.avif",
+            description: "Select Roof Deck Material",
+            options: {
+                concrete: {
+                    label: "Concrete",
+                    image: "/roof-materials/concrete.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "adhered": {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "adhered": {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "adhered": {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                timber: {
+                    label: "Timber",
+                    image: "/roof-materials/timber.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                metal: {
+                    label: "Metal",
+                    image: "/roof-materials/metal.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                adhered: {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                adhered: {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                }
+            }
         },
+        refurbishment: {
+            label: "Refurbishment",
+            image: "/roof-project-types/refurbishment.avif",
+            description: "Select Roof Deck Material",
+            options: {
+                concrete: {
+                    label: "Concrete",
+                    image: "/roof-materials/concrete.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                timber: {
+                    label: "Timber",
+                    image: "/roof-materials/timber.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain",
+                                            options: {
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain",
+                                            options: {
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain",
+                                            options: {
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain",
+                                            options: {
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                metal: {
+                    label: "Existing Metal",
+                    image: "/roof-materials/metal.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        }
     }
 }
 
-function makeMembrane(name: string, image: string, description: string, fit: "cover" | "contain"): TreeNode {
-    return {
-        label: name,
-        image,
-        description,
-        fit,
-        options: {
-            insulated: makeProtection("Insulated", "/roof-insulated/roof-insulated.png", "Select Finish Type", "contain"),
-            "not-insulated": makeProtection("Not Insulated", "/roof-insulated/roof-non-insulated.png", "Select Finish Type", "contain"),
-        },
-    }
-}
-
-function makeProtection(name: string, image: string, description: string, fit: "cover" | "contain"): TreeNode {
-    return {
-        label: name,
-        image,
-        description,
-        fit,
-        options: {
-            exposed: makeFixings("Exposed", "/roof-finish-types/roof-exposed.png", "Select Installation System", "contain"),
-            protected: makeFixings("Protected / Green", "/roof-finish-types/roof-protected.png", "Select Installation System", "contain"),
-        },
-    }
-}
-
-function makeFixings(name: string, image: string, description: string, fit: "cover" | "contain"): TreeNode {
-    return {
-        label: name,
-        image,
-        description,
-        fit,
-        options: {
-            "self-adhered": {
-                label: "Self-Adhered",
-                description: "Select Roof System"
-            },
-            "mechanically-fixed": {
-                label: "Mechanically Fixed",
-                description: "Select Roof System"
-            },
-            "loose-laid": {
-                label: "Loose Laid",
-                description: "Select Roof System"
-            },
-        },
-    }
-}
-
-// ---------- Roof Tree ----------
+// ---------- Roof Tree Allduro and Bayset ----------
 const roofTree: TreeNode = {
     label: "Roof",
     image: "/areas/roof.jpg",
@@ -80,22 +952,888 @@ const roofTree: TreeNode = {
             image: "/roof-project-types/new-build.avif",
             description: "Select Roof Deck Material",
             options: {
-                concrete: makeSubstrate("Concrete", "/roof-materials/concrete.png", "Select Waterproofing Membrane Type", "contain"),
-                timber: makeSubstrate("Timber", "/roof-materials/timber.png", "Select Waterproofing Membrane Type", "contain"),
-                metal: makeSubstrate("Metal", "/roof-materials/metal.png", "Select Waterproofing Membrane Type", "contain"),
-            },
+                concrete: {
+                    label: "Concrete",
+                    image: "/roof-materials/concrete.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected", // ?? Green?? for Bayset
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered-or-fully-torched": {
+                                                    label: "Self Adhered or Fully Torched",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "fully-torched": {
+                                                    label: "Fully Torched",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "adhered": {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "adhered": {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "adhered": {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                timber: {
+                    label: "Timber",
+                    image: "/roof-materials/timber.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                metal: {
+                    label: "Metal",
+                    image: "/roof-materials/metal.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                adhered: {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                sopraboard: {
+                                    label: "SOPRABOARD",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                adhered: {
+                                                    label: "Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                }
+            }
         },
         refurbishment: {
             label: "Refurbishment",
             image: "/roof-project-types/refurbishment.avif",
             description: "Select Roof Deck Material",
             options: {
-                concrete: makeSubstrate("Concrete", "/roof-materials/concrete.png", "Select Type of Waterproofing Membrane", "contain"),
-                timber: makeSubstrate("Timber", "/roof-materials/timber.png", "Select Type of Waterproofing Membrane", "contain"),
-                metal: makeSubstrate("Metal", "/roof-materials/metal.png", "Select Type of Waterproofing Membrane", "contain"),
-            },
-        },
-    },
+                concrete: {
+                    label: "Concrete",
+                    image: "/roof-materials/concrete.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Installation System",
+                                            fit: "contain",
+                                            options: {
+                                                "self-adhered": {
+                                                    label: "Self Adhered",
+                                                    description: "Select Roof System"
+                                                },
+                                                "mechanically-fixed": {
+                                                    label: "Mechanically Fixed",
+                                                    description: "Select Roof System"
+                                                },
+                                                "loose-laid": {
+                                                    label: "Loose Laid",
+                                                    description: "Select Roof System"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                timber: {
+                    label: "Timber",
+                    image: "/roof-materials/timber.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                        protected: {
+                                            label: "Protected / Green",
+                                            image: "/roof-finish-types/roof-protected.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+                metal: {
+                    label: "Existing Metal",
+                    image: "/roof-materials/metal.png",
+                    description: "Select Waterproofing Membrane Type",
+                    fit: "contain",
+                    options: {
+                        bitumen: {
+                            label: "Bitumen",
+                            image: "/roof-membranes/roof-bitumen.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        synthetic: {
+                            label: "Synthetic",
+                            image: "/roof-membranes/roof-synthetic.png",
+                            description: "Select whether the Roof System is Insulated or Not",
+                            fit: "contain",
+                            options: {
+                                insulated: {
+                                    label: "Insulated",
+                                    image: "/roof-insulated/roof-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        },
+                                    }
+                                },
+                                "not-insulated": {
+                                    label: "Not Insulated",
+                                    image: "/roof-insulated/roof-non-insulated.png",
+                                    description: "Select Finish Type",
+                                    fit: "contain",
+                                    options: {
+                                        exposed: {
+                                            label: "Exposed",
+                                            image: "/roof-finish-types/roof-exposed.png",
+                                            description: "Select Roof System",
+                                            fit: "contain"
+                                            // end here
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        }
+    }
 }
 
 // ---------- Wall Tree ----------
@@ -267,7 +2005,7 @@ export const systemTree: Record<string, TreeNode> = {
         image: "/logos/logo-enduroflex-black.png",
         description: "Choose an application area",
         options: {
-            roof: roofTree,
+            roof: roofTreeEnduroflex,
             wall: wallTree,
             foundation: foundationTree,
             "civil-works": civilWorksTree,
