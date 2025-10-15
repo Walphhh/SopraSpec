@@ -4,4 +4,5 @@
 **/dist/
 **/Dockerfile
 **/docker-compose.yml
+**/coverage/
 .DS_Store

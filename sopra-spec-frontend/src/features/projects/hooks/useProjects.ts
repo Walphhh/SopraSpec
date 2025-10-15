@@ -1,11 +1,36 @@
-'use client';
-import { Project } from '@/features/common/types';
+﻿"use client";
+
+import { useCallback } from "react";
+
+import type { AreaType, NewProject, Project, ProjectArea, ProjectDetail, SpecificationStatus } from "@/utils/types";
+import {
+  fetchProjects,
+  fetchProjectById,
+  fetchProjectAreas,
+  createProject,
+  deleteProject,
+  createProjectArea,
+} from "@/lib/api/projects";
 
 export function useProjects() {
-  // TODO: connect to API/Supabase
-  const list = async (): Promise<Project[]> => Promise.resolve([]);
-  const get = async (_id: string): Promise<Project | null> => Promise.resolve(null);
-  const create = async (_p: Partial<Project>) => Promise.resolve({ id: 'new', name: '', location: '' });
-  const update = async (_id: string, _p: Partial<Project>) => Promise.resolve(true);
-  return { list, get, create, update };
+  const list = useCallback((ownerId?: string): Promise<Project[]> => fetchProjects(ownerId), []);
+  const get = useCallback((id: string): Promise<ProjectDetail | null> => fetchProjectById(id), []);
+  const listAreas = useCallback(
+    (projectId: string): Promise<ProjectArea[]> => fetchProjectAreas(projectId),
+    []
+  );
+  const create = useCallback(
+    (payload: NewProject & { ownerId: string }): Promise<Project> => createProject(payload),
+    []
+  );
+  const remove = useCallback((id: string): Promise<boolean> => deleteProject(id), []);
+  const createArea = useCallback(
+    (
+      projectId: string,
+      payload: { name: string; areaType: AreaType; drawing?: string; systemStackId?: string; status?: SpecificationStatus }
+    ): Promise<ProjectArea> => createProjectArea(projectId, payload),
+    []
+  );
+
+  return { list, get, listAreas, create, remove, createArea };
 }

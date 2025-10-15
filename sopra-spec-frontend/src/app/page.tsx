@@ -1,53 +1,84 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import axios from "axios";
+
 import "./globals.css";
+
 import ProjectCard from "@/components/ProjectCard";
-import { Project, mockProjects } from "@/lib/project";
+import type { Project, NewProject } from "@/utils/types";
 import { useAuth } from "@/utils/auth-provider";
 import { getBackendUrl } from "@/utils/get-backend-url";
-import axios from "axios";
-import Link from "next/link";
+import { useProjects } from "@/features/projects/hooks/useProjects";
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects); // Change to integrate with the database later
   const router = useRouter();
-  const { isAuthenticated, logout, user } = useAuth(); // grab logout from provider
+  const { isAuthenticated, logout, user } = useAuth();
+  const { list } = useProjects();
 
-  console.log(user);
-  /* Integrate with the database later */
-  // useEffect(() => {
-  //   fetch("/api/projects")
-  //     .then((res) => res.json())
-  //     .then(setProjects)
-  // }, [])
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Add default "New Project" card
-  const allProjects: Project[] = [
-    {
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) {
+      setProjects([]);
+      return;
+    }
+
+    let ignore = false;
+    setIsLoading(true);
+    list(user.id)
+      .then((fetched) => {
+        if (!ignore) {
+          setProjects(fetched);
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setProjects([]);
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [isAuthenticated, user?.id, list]);
+
+  const newProjectPlaceholder: NewProject = useMemo(
+    () => ({
       id: "new",
       name: "New Project",
-      architect: "Please Enter Architect Name",
-      builder: "Please Enter Builder Name",
-      installer: "Please Enter Installer Name",
-      consultant: "Please Enter Consultant Name",
-      preparedBy: "Please Enter Your Name",
-      location: "Please Enter Project Location",
-      date: "2025-09-30",
-      notes: "Please Enter Any Notes (optional)",
-      thumbnail: "",
-      isNew: true,
-    },
-    ...projects,
-  ];
+      architect: "",
+      builder: "",
+      installer: "",
+      consultant: "",
+      preparedBy: "",
+      location: "",
+      date: new Date().toISOString().split("T")[0],
+    }),
+    []
+  );
+
+  const allProjects: (Project | NewProject)[] = [newProjectPlaceholder, ...projects];
+
+  const handleProjectClick = (project: Project | NewProject) => {
+    if (project.id === "new") {
+      router.push(`/projects/new/project-details`);
+    } else {
+      router.push(`/projects/${project.id}/project-details`);
+    }
+  };
 
   const handleLogout = async () => {
     try {
-      // call backend logout
       await axios.post(getBackendUrl("/auth/logout"));
-
-      // clear local tokens + user state
       logout();
       router.push("/");
     } catch (error) {
@@ -55,57 +86,58 @@ export default function HomePage() {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 p-6">
+        <h1>You are not logged in</h1>
+        <Link
+          href="/auth/login"
+          className="rounded bg-[#0072CE] px-4 py-2 text-white"
+        >
+          Login Here
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {isAuthenticated ? (
-        <>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">
-              Welcome to SopraSpec {user?.firstName}
-            </h1>
-            <h4 className="mb-10">
-              Start by Browsing our Systems and Generating Product
-              Specifications
-            </h4>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">
+        Welcome to SopraSpec {user?.firstName}
+      </h1>
+      <h4 className="mb-10">
+        Start by browsing our systems and generating product specifications
+      </h4>
 
-            <div className="flex flex-wrap justify-center gap-x-[30px] gap-y-[30px]">
-              {allProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onClick={() =>
-                    router.push(
-                      `/specification-generator/${
-                        project.isNew ? "new" : project.id
-                      }/project-details`
-                    )
-                  }
-                />
-              ))}
-            </div>
-
-            <button
-              className="px-6 py-3 mt-10 bg-[#7C878E] text-white font-bold rounded hover:bg-[#0072CE] transition"
-              onClick={() => router.push("/systems")}
-            >
-              Browse Systems
-            </button>
-          </div>
-          <button
-            className="p-3 rounded-sm bg-[#0072CE] text-black hover:cursor-pointer"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </>
+      {isLoading ? (
+        <div className="text-center text-[#7C878E]">Loading projects…</div>
       ) : (
-        <div className="flex flex-col items-center justify-center">
-          <h1>You are not logged in</h1>
-          <button className="p-3 rounded-sm bg-[#0072CE] text-black">
-            <Link href="/auth/login">Login Here</Link>
-          </button>
+        <div className="flex flex-wrap justify-center gap-x-[30px] gap-y-[30px]">
+          {allProjects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onClick={() => handleProjectClick(project)}
+            />
+          ))}
         </div>
       )}
+
+      <button
+        className="px-6 py-3 mt-10 bg-[#7C878E] text-white font-bold rounded hover:bg-[#0072CE] transition"
+        onClick={() => router.push("/systems")}
+      >
+        Browse Systems
+      </button>
+
+      <div className="mt-10">
+        <button
+          className="bg-amber-200 hover:cursor-pointer px-4 py-2 rounded"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }
