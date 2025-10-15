@@ -1,46 +1,50 @@
-"use client"
+"use client";
 
 import Image from "next/image";
 import { use } from "react";
 
-import { systemTree, TreeNode } from "@/lib/systemTree"
-import OptionCard from "@/components/OptionCard"
+import { systemTree, TreeNode } from "@/lib/systemTree";
+import OptionCard from "@/components/OptionCard";
 import ProjectDropdownButton from "@/components/ProjectDropDownButton";
 
-export default function SystemTreePage({ params }: { params: Promise<{ path?: string[] }> }) {
-    const { path = [] } = use(params);
+interface SystemTreePageProps {
+    params: Promise<{ distributor: string; path?: string[] }>;
+}
 
-    // Traverse systemTree based on path
-    let node: any = systemTree
+export default function SystemTreePage({ params }: SystemTreePageProps) {
+    const { distributor, path = [] } = use(params);
+
+    // Start at distributor node
+    const distributorNode: TreeNode | undefined = systemTree[distributor];
+    if (!distributorNode) {
+        return <div className="p-8">Invalid distributor</div>;
+    }
+
+    // Traverse the rest of the path
+    let node: any = distributorNode;
     for (const segment of path) {
-        node = node?.[segment] || node?.options?.[segment]
+        node = node?.options?.[segment];
+        if (!node) break;
     }
 
-    // Handle invalid path
     if (!node) {
-        return <div className="p-8">Invalid system path</div>
+        return <div className="p-8">Invalid system path</div>;
     }
 
-    // The distributor is always the first path segment
-    const distributorKey = path[0]
-    const distributor = systemTree[distributorKey]
-
-    const optionCount = Object.keys(node.options ?? {}).length // the number of options
+    const optionCount = Object.keys(node.options ?? {}).length;
 
     return (
         <div className="p-6">
             {/* Distributor logo */}
-            {distributor && (
-                <div className="flex justify-center">
-                    {distributor.image && (
-                        <Image
-                            src={distributor.image}
-                            alt={distributor.label}
-                            width={250}
-                            height={30}
-                            className="object-contain"
-                        />
-                    )}
+            {distributorNode.image && (
+                <div className="flex justify-center mb-4">
+                    <Image
+                        src={distributorNode.image}
+                        alt={distributorNode.label}
+                        width={250}
+                        height={30}
+                        className="object-contain"
+                    />
                 </div>
             )}
 
@@ -57,11 +61,10 @@ export default function SystemTreePage({ params }: { params: Promise<{ path?: st
                             ? "inline-grid grid-cols-2 gap-x-[150px] gap-y-[30px] justify-center [grid-columns:500px] max-[1150px]:grid-cols-1"
                             : "flex flex-wrap justify-center gap-x-[150px] gap-y-[30px]"
                     }
-                    style={{ justifyContent: "center" }}
                 >
                     {Object.entries(node.options).map(([key, opt]) => {
-                        const option = opt as TreeNode
-                        const href = `/systems/${[...path, key].join("/")}`
+                        const option = opt as TreeNode;
+                        const href = `/systems/${distributor}/${[...path, key].join("/")}`;
                         return (
                             <OptionCard
                                 key={key}
@@ -72,18 +75,15 @@ export default function SystemTreePage({ params }: { params: Promise<{ path?: st
                                 optionCount={optionCount}
                                 textOnly={!option.image}
                             />
-                        )
+                        );
                     })}
                 </div>
             ) : (
-                // Leaf node
                 <div>
                     <p className="text-[#7C878E] flex justify-center">Systems Listed Here</p>
-
-                    {/* Get List of Projects from the Database later */}
-                    <ProjectDropdownButton projects={["Project A", "Project B", "Project C"]} /> 
+                    <ProjectDropdownButton projects={["Project A", "Project B", "Project C"]} />
                 </div>
             )}
         </div>
-    )
+    );
 }
