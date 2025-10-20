@@ -4,10 +4,7 @@ import { getStatusMessage, Status } from "@src/utils/status-codes";
 
 const SystemStack = {
   /**
-   * Get specific system stack by ID with its products
-   * @param req Express Request object with system_stack_id in params
-   * @param res Express Response object
-   * @returns JSON response with system stack and its products
+   * Get specific system stack by ID
    */
   getSystemStackById: async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -15,192 +12,142 @@ const SystemStack = {
     try {
       const { data, error } = await supabase
         .from("system_stack")
-        .select(`
+        .select(
+          `
           id,
+          distributor,
+          area_type,
           substrate,
+          material,
           insulated,
           exposure,
-          material,
           attachment,
-          system_stack_layer (
-            product:product_id (
-              name,
-              layer,
-              distributor:distributor_id (
-                distributor_name
-              )
-            )
-          )
-        `)
+          roof_subtype,
+          foundation_subtype,
+          civil_work_subtype,
+          created_at
+        `
+        )
         .eq("id", id)
         .single();
 
-      if (error) {
-        return res.status(Status.BAD_REQUEST).json({ error: error.message });
-      }
+      if (error) throw error;
 
       return res.status(Status.SUCCESS).json({
         message: "System stack retrieved successfully",
-        data: data,
+        data,
       });
-    } catch (error) {
-      return res
-        .status(Status.INTERNAL_SERVER_ERROR)
-        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    } catch (error: any) {
+      return res.status(Status.BAD_REQUEST).json({
+        error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
+      });
     }
   },
 
   /**
-   * Get recommended system stacks
-   * @param req Express Request object with body { user_id, selections }
-   * @param res Express Response object
-   * @returns JSON response with recommended system stacks based on user selections
+   * Get system recommendations based on selections
    */
   getRecommendedSystems: async (req: Request, res: Response) => {
-    const { user_id, selections } = req.body;
+    const { distributor, selections } = req.body;
 
-    if (!user_id || !selections) {
+    if (!distributor || !selections) {
       return res
         .status(Status.BAD_REQUEST)
-        .json({ error: "User ID and selections are required" });
+        .json({ error: "Distributor and selections are required" });
     }
 
     try {
-      // Build query based on user selections
       let query = supabase
         .from("system_stack")
-        .select(`
-        id,
-        substrate,
-        insulated,
-        exposure,
-        material,
-        attachment,
-        system_stack_layer (
-          priority,
-          product:product_id (
-            id,
-            name,
-            layer,
-            distributor_id,
-            distributor (
-              id,
-              distributor_name
-            )
-          )
-        )
-      `);
+        .select("*")
+        .eq("distributor", distributor);
 
-      // Apply user selections as filters
-      if (selections.substrate) {
-        query = query.eq("substrate", selections.substrate);
-      }
-      if (selections.material) {
-        query = query.eq("material", selections.material);
-      }
-      if (selections.insulated !== undefined) {
-        query = query.eq("insulated", selections.insulated);
-      }
-      if (selections.exposure !== undefined) {
-        query = query.eq("exposure", selections.exposure);
-      }
-      if (selections.attachment) {
-        query = query.eq("attachment", selections.attachment);
+      // Apply filters dynamically
+      const filters = [
+        "area_type",
+        "substrate",
+        "material",
+        "insulated",
+        "exposure",
+        "attachment",
+        "roof_subtype",
+        "foundation_subtype",
+        "civil_work_subtype",
+      ];
+
+      for (const key of filters) {
+        if (selections[key] !== undefined && selections[key] !== null) {
+          query = query.eq(key, selections[key]);
+        }
       }
 
-      const { data: recommendedSystems, error } = await query;
+      const { data, error } = await query;
 
-      if (error) {
-        return res.status(Status.BAD_REQUEST).json({ error: error.message });
-      }
+      if (error) throw error;
 
-      if (!recommendedSystems || recommendedSystems.length === 0) {
+      if (!data?.length) {
         return res.status(Status.NOT_FOUND).json({
-          message: "No recommended systems found for the given selections",
-          data: {
-            selections: selections,
-            recommendedSystems: [],
-            count: 0
-          }
+          message: "No matching systems found for the given selections.",
+          data: { selections, recommendedSystems: [], count: 0 },
         });
       }
 
       return res.status(Status.SUCCESS).json({
-        message: "System recommendations generated successfully",
-        data: {
-          selections: selections,
-          recommendedSystems: recommendedSystems,
-          count: recommendedSystems.length
-        }
+        message: "Recommended systems found.",
+        data: { selections, recommendedSystems: data, count: data.length },
       });
-    } catch (error) {
+    } catch (error: any) {
       return res
         .status(Status.INTERNAL_SERVER_ERROR)
-        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+        .json({ error: error.message });
     }
   },
 
   /**
-   * Get available selection options for the wizard
-   * @param req Express Request object
-   * @param res Express Response object
-   * @returns JSON response with available options for each selection step
+   * Get available options for each selection step dynamically
    */
   getSelectionOptions: async (req: Request, res: Response) => {
+    const { distributor, area_type } = req.query;
+
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("system_stack")
-        .select("substrate, material, attachment")
-        .not("substrate", "is", null)
-        .not("material", "is", null)
-        .not("attachment", "is", null);
+        .select(
+          "substrate, material, attachment, area_type, roof_subtype, foundation_subtype, civil_work_subtype"
+        );
 
-      if (error) {
-        return res.status(Status.BAD_REQUEST).json({ error: error.message });
-      }
+      if (distributor) query = query.eq("distributor", distributor);
+      if (area_type) query = query.eq("area_type", area_type);
 
-      // Extract unique values for each selection option
-      const substrates = [...new Set(data.map(item => item.substrate))];
-      const materials = [...new Set(data.map(item => item.material))];
-      const attachments = [...new Set(data.map(item => item.attachment))];
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const unique = (key: string) => [
+        ...new Set(
+          (data as Array<Record<string, any>>)
+            .map((item) => item[key])
+            .filter(Boolean)
+        ),
+      ];
 
       return res.status(Status.SUCCESS).json({
         message: "Selection options retrieved successfully",
         data: {
+          distributor: distributor || "All",
           steps: {
-            substrate: {
-              title: "What type of substrate?",
-              options: substrates.map(s => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) }))
-            },
-            material: {
-              title: "What material type?",
-              options: materials.map(m => ({ value: m, label: m.charAt(0).toUpperCase() + m.slice(1) }))
-            },
-            insulated: {
-              title: "Do you need insulation?",
-              options: [
-                { value: true, label: "Yes, insulated" },
-                { value: false, label: "No, non-insulated" }
-              ]
-            },
-            exposure: {
-              title: "Will it be exposed?",
-              options: [
-                { value: true, label: "Yes, exposed" },
-                { value: false, label: "No, protected" }
-              ]
-            },
-            attachment: {
-              title: "What attachment method?",
-              options: attachments.map(a => ({ value: a, label: a.replace('_', ' ').charAt(0).toUpperCase() + a.replace('_', ' ').slice(1) }))
-            }
-          }
-        }
+            substrate: unique("substrate"),
+            material: unique("material"),
+            attachment: unique("attachment"),
+            roof_subtype: unique("roof_subtype"),
+            foundation_subtype: unique("foundation_subtype"),
+            civil_work_subtype: unique("civil_work_subtype"),
+          },
+        },
       });
-    } catch (error) {
+    } catch (error: any) {
       return res
         .status(Status.INTERNAL_SERVER_ERROR)
-        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+        .json({ error: error.message });
     }
   },
 };
