@@ -1,4 +1,5 @@
 'use client';
+
 type Spec = { id: string; createdAt: string; url?: string };
 
 const mock: Spec[] = [
