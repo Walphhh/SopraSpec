@@ -183,7 +183,12 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                             );
                           })}
                         </ul>
-                        <button className="bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90">
+                        <button
+                          className="bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90"
+                          onClick={() => {
+                            console.log(combo.products);
+                          }}
+                        >
                           Add to Project
                         </button>
                       </div>
@@ -240,9 +245,6 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                       className="rounded bg-[#0072CE] text-white px-4 py-2 opacity-70 cursor-not-allowed"
                       disabled
                       title="Save to Project (coming soon)"
-                      onClick={() => {
-                        alert(wizard.details);
-                      }}
                     >
                       Save to Project
                     </button>
