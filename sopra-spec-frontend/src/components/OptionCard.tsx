@@ -33,8 +33,10 @@ export default function OptionCard({
   const card = (
     <div
       className={[
-        "relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition border",
-        selected ? "border-[#0072CE] ring-2 ring-[#0072CE]" : "border-transparent",
+        "hover:cursor-pointer relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition border",
+        selected
+          ? "border-[#0072CE] ring-2 ring-[#0072CE]"
+          : "border-transparent",
       ].join(" ")}
       style={{ width, height }}
       onClick={onClick}
@@ -46,7 +48,13 @@ export default function OptionCard({
         </div>
       ) : (
         <div className="absolute inset-0 bg-gray-200 hover:bg-[#0072CE] flex items-center justify-center">
-          <h3 className={selected ? "text-white" : "text-[#7C878E] group-hover:!text-white"}>{title}</h3>
+          <h3
+            className={
+              selected ? "text-white" : "text-[#7C878E] group-hover:!text-white"
+            }
+          >
+            {title}
+          </h3>
         </div>
       )}
 
