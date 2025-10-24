@@ -132,16 +132,8 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="rounded bg-[#0072CE] text-white px-3 py-1 hover:bg-[#005a9e]"
-                      onClick={() => wizard.loadDetails(rec.id)}
-                    >
-                      View Details
-                    </button>
-                  </div>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-5">
                   {(() => {
                     const combinations = wizard.layerCombinations?.[rec.id];
                     if (combinations === undefined) {
@@ -158,6 +150,7 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         </div>
                       );
                     }
+
                     return combinations.map((combo) => (
                       <div
                         key={`${rec.id}-combo-${combo.combination}`}
