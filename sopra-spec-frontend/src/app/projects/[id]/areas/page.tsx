@@ -116,10 +116,13 @@ export default async function AreasPage({
         </table>
       </div>
 
-      <button className="inline-flex items-center gap-2 rounded border border-[#0072CE] px-4 py-2 text-[#0072CE] transition-colors hover:bg-[#0072CE] hover:text-white">
+      <Link
+        href={`/systems?projectId=${id}`}
+        className="inline-flex items-center gap-2 rounded border border-[#0072CE] px-4 py-2 text-[#0072CE] transition-colors hover:bg-[#0072CE] hover:text-white"
+      >
         <PlusSquare size={18} />
         Add New Area
-      </button>
+      </Link>
     </div>
   );
 }

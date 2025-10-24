@@ -22,7 +22,9 @@ export default async function AreaDetailPage({
         appear here.
       </p>
 
-      <WarrantyPage />
+      <div className="mt-6">
+        <WarrantyPage />
+      </div>
     </div>
   );
 }

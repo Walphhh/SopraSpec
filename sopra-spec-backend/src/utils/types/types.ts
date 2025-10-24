@@ -12,6 +12,19 @@ export type MaterialT = "bitumen" | "synthetic";
 
 export type AttachmentT = "mechanically_fixed" | "self_adhered" | "loose_laid";
 
+export type AreaType =
+  | "roof"
+  | "wall"
+  | "foundation"
+  | "civil_work"
+  | "internal_wet_area";
+
+type FoundationSubtype = "pre_applied" | "post_applied";
+
+type CivilWorkSubtype = "tunnels" | "bridges_roads" | "hydraulic_work";
+
+export type RoofSubtype = "new_build" | "refurbishment";
+
 // Project
 export interface NewProject {
   id: string;
@@ -45,13 +58,6 @@ interface ProjectArea {
     delete?: boolean;
   };
 }
-
-type AreaType =
-  | "roof"
-  | "wall"
-  | "foundation"
-  | "civil_work"
-  | "internal_wet_area";
 
 export type Warranty = {
   name: string;
