@@ -2,6 +2,7 @@
 
 import OptionCard from "@/components/OptionCard";
 import { useSystemWizard } from "@/lib/hooks/useSystemWizard";
+import { Divide } from "lucide-react";
 
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
@@ -11,7 +12,9 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
       <h3 className="text-xl font-semibold text-[#0072CE]">System Selection</h3>
 
       {wizard.error && (
-        <div className="rounded border border-red-200 bg-red-50 p-3 text-red-700">{wizard.error}</div>
+        <div className="rounded border border-red-200 bg-red-50 p-3 text-red-700">
+          {wizard.error}
+        </div>
       )}
 
       {!wizard.currentStep && wizard.loading && (
@@ -20,9 +23,11 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
 
       {wizard.currentStep && !wizard.finished && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center p-10 justify-between">
             <div>
-              <div className="text-sm text-[#7C878E]">Step: {wizard.currentStep}</div>
+              <div className="text-sm text-[#7C878E]">
+                Current Step: {wizard.currentStep}
+              </div>
               <div className="text-lg text-[#1E293B] font-medium">
                 Select {wizard.currentStep.replace(/_/g, " ")}
               </div>
@@ -37,7 +42,14 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            className={`
+    grid gap-4 justify-center place-items-center
+    ${wizard.options.length === 1 ? "grid-cols-1" : ""}
+    ${wizard.options.length === 2 ? "grid-cols-2" : ""}
+    ${wizard.options.length >= 3 ? "grid-cols-3" : ""}
+  `}
+          >
             {wizard.options?.map((opt, idx) => (
               <OptionCard
                 key={`${wizard.currentStep}-${idx}`}
@@ -45,16 +57,21 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                 textOnly
                 width={320}
                 onClick={() => wizard.setSelectionForActive(opt.value)}
-                selected={String(
-                  wizard.selections[wizard.currentStep as keyof typeof wizard.selections]
-                ) === String(opt.value)}
+                selected={
+                  String(
+                    wizard.selections[
+                      wizard.currentStep as keyof typeof wizard.selections
+                    ]
+                  ) === String(opt.value)
+                }
               />
             ))}
           </div>
 
           {(!wizard.options || wizard.options.length === 0) && (
             <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
-              No options available for this step. Please check your database seed data for system_stack.
+              No options available for this step. Please check your database
+              seed data for system_stack.
             </div>
           )}
 
@@ -80,12 +97,17 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex justify-center gap-3">
             {wizard.recommendations?.map((rec) => (
-              <div key={rec.id} className="rounded border border-[#E2E8F0] p-4 bg-white">
+              <div
+                key={rec.id}
+                className="rounded border border-[#E2E8F0] p-4 bg-white"
+              >
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <div className="text-[#0072CE] font-semibold">System #{rec.id}</div>
+                    <div className="text-[#0072CE] font-semibold">
+                      System #{rec.id}
+                    </div>
                     <div className="text-sm text-[#475569]">
                       {rec.substrate && (
                         <span className="mr-3">Substrate: {rec.substrate}</span>
@@ -104,20 +126,14 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         </span>
                       )}
                       {rec.attachment && (
-                        <span className="mr-3">Attachment: {rec.attachment}</span>
+                        <span className="mr-3">
+                          Attachment: {rec.attachment}
+                        </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="rounded bg-[#0072CE] text-white px-3 py-1 hover:bg-[#005a9e]"
-                      onClick={() => wizard.loadDetails(rec.id)}
-                    >
-                      View Details
-                    </button>
-                  </div>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-5">
                   {(() => {
                     const combinations = wizard.layerCombinations?.[rec.id];
                     if (combinations === undefined) {
@@ -134,8 +150,12 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         </div>
                       );
                     }
+
                     return combinations.map((combo) => (
-                      <div key={`${rec.id}-combo-${combo.combination}`} className="rounded border border-[#E2E8F0] p-3 bg-[#F8FAFC]">
+                      <div
+                        key={`${rec.id}-combo-${combo.combination}`}
+                        className="rounded border border-[#E2E8F0] p-3 bg-[#F8FAFC] space-y-3"
+                      >
                         <div className="text-sm font-semibold text-[#1E293B]">
                           Combination {combo.combination}
                         </div>
@@ -145,12 +165,25 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                               ? `${product.layer}: ${product.name}`
                               : product.name;
                             return (
-                              <li key={product.id ?? `${rec.id}-${combo.combination}-${idx}`}>
+                              <li
+                                key={
+                                  product.id ??
+                                  `${rec.id}-${combo.combination}-${idx}`
+                                }
+                              >
                                 {label}
                               </li>
                             );
                           })}
                         </ul>
+                        <button
+                          className="bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90"
+                          onClick={() => {
+                            console.log(combo.products);
+                          }}
+                        >
+                          Add to Project
+                        </button>
                       </div>
                     ));
                   })()}
@@ -215,7 +248,8 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                     if (!wizard.details?.id) {
                       return null;
                     }
-                    const combinations = wizard.layerCombinations?.[wizard.details.id];
+                    const combinations =
+                      wizard.layerCombinations?.[wizard.details.id];
                     if (combinations === undefined) {
                       return (
                         <div className="rounded border border-[#E2E8F0] p-3 text-sm text-[#7C878E]">
@@ -232,8 +266,10 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                     }
                     return combinations.map((combo) => (
                       <div
-                        key={`details-${wizard.details?.id ?? "system"}-${combo.combination}`}
-                        className="rounded border border-[#E2E8F0] p-3"
+                        key={`details-${wizard.details?.id ?? "system"}-${
+                          combo.combination
+                        }`}
+                        className="frounded border border-[#E2E8F0] p-3"
                       >
                         <div className="text-[#0072CE] font-medium">
                           Combination {combo.combination}
@@ -244,7 +280,12 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                               ? `${product.layer}: ${product.name}`
                               : product.name;
                             return (
-                              <li key={product.id ?? `details-${combo.combination}-${idx}`}>
+                              <li
+                                key={
+                                  product.id ??
+                                  `details-${combo.combination}-${idx}`
+                                }
+                              >
                                 {label}
                               </li>
                             );
