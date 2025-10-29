@@ -522,10 +522,13 @@ export class PDFGeneratorService {
                 const layer = product.layer ? `${this.formatValue(product.layer)}: ` : '';
                 this.doc.fontSize(10)
                   .font('Helvetica-Bold')
-                  .text(layer, this.margin + 20 , currentY, { width: 80, continued: false });
+                  .text(layer, this.margin + 20, currentY, { width: 80, continued: false })
+                  .lineGap(1);
                 this.doc.fontSize(10)
-                  .font('Helvetica')
-                  .text(product.name, this.margin + 120, currentY, { width: 300 });
+                  .font('Helvetica-Oblique')
+                  .text(product.name, this.margin + 120, currentY, { width: 300 })
+                  .lineGap(1);
+                ;
                 this.doc.moveDown(0.5);
               });
             });
