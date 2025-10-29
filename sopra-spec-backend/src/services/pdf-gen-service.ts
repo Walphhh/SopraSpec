@@ -405,7 +405,7 @@ export class PDFGeneratorService {
         // Area name with combination (e.g., "Exposed Roofs")
         const areaName = area.name || 'Unnamed Area';
         const combination = area.combination || 1;
-        
+
         this.doc
           .fontSize(11)
           .font('Helvetica')
@@ -475,171 +475,66 @@ export class PDFGeneratorService {
     // Display each area type and its project areas with system details
     Object.keys(groupedAreas).forEach((areaType) => {
       const areas = groupedAreas[areaType];
-            
+
       // Area type header
-      this.doc.fillColor('#2c3e50');
       this.doc
         .fontSize(14)
         .font('Helvetica-Bold')
         .text(`${this.formatAreaTypeName(areaType).toUpperCase()}`, this.margin, this.doc.y + 20);
-      
+
       this.doc.moveDown(0.5);
 
       // Display each project area under this type
       areas.forEach((area: any) => {
         this.addNewPageIfNeeded(200);
-        
+
         // Project area header
         this.doc.fillColor('black');
         this.doc
           .fontSize(12)
           .font('Helvetica-Bold')
           .text(`${area.name} - Combination ${area.combination}`, this.margin + 20, this.doc.y);
-        
         this.doc.moveDown(0.3);
 
         // System stack details
         if (area.system_stack) {
           const systemStack = area.system_stack;
-          
-          // System specifications
-          this.doc.fillColor('#34495e');
-          this.doc.fontSize(11).font('Helvetica-Bold').text('System Specifications:', this.margin + 40, this.doc.y);
-          this.doc.moveDown(0.3);
-
-          const specs = this.buildSystemSpecs(systemStack);
-          specs.forEach((spec) => {
-            this.addNewPageIfNeeded(25);
-            this.doc.fillColor('#7f8c8d');
-            this.doc
-              .fontSize(10)
-              .font('Helvetica-Bold')
-              .text(`${spec.label}:`, this.margin + 60, this.doc.y, { continued: true });
-            
-            this.doc
-              .font('Helvetica')
-              .fillColor('black')
-              .text(` ${spec.value}`, { width: this.contentWidth - 120 });
-          });
-
-          this.doc.moveDown(0.5);
 
           // System layers
           if (systemStack.system_stack_layer && systemStack.system_stack_layer.length > 0) {
-            this.doc.fillColor('#34495e');
-            this.doc.fontSize(11).font('Helvetica-Bold').text('System Layers:', this.margin + 40, this.doc.y);
-            this.doc.moveDown(0.3);
 
             // Group layers by combination
             const layersByCombination = this.groupLayersByCombination(systemStack.system_stack_layer, area.combination);
-            
+
             layersByCombination.forEach((combo) => {
               this.addNewPageIfNeeded(50 + combo.products.length * 20);
-              
+
               if (layersByCombination.length > 1) {
-                this.doc.fillColor('#7f8c8d');
                 this.doc
                   .fontSize(10)
                   .font('Helvetica-Bold')
                   .text(`Combination ${combo.combination}:`, this.margin + 60, this.doc.y);
                 this.doc.moveDown(0.2);
               }
-
-              combo.products.forEach((product, index) => {
+              combo.products.forEach((product) => {
                 this.addNewPageIfNeeded(20);
-                
-                const layer = product.layer ? `[${this.formatValue(product.layer)}] ` : '';
-                
-                this.doc.fillColor('#95a5a6');
-                this.doc
-                  .fontSize(9)
+                const currentY = this.doc.y;
+                const layer = product.layer ? `${this.formatValue(product.layer)}: ` : '';
+                this.doc.fontSize(10)
                   .font('Helvetica-Bold')
-                  .text(`${index + 1}. `, this.margin + 80, this.doc.y, { continued: true });
-                
-                this.doc
+                  .text(layer, this.margin + 20 , currentY, { width: 80, continued: false });
+                this.doc.fontSize(10)
                   .font('Helvetica')
-                  .fillColor('black')
-                  .text(`${layer}${product.name}`, { width: this.contentWidth - 140 });
+                  .text(product.name, this.margin + 120, currentY, { width: 300 });
+                this.doc.moveDown(0.5);
               });
             });
           }
         }
-        
-        this.doc.moveDown(1);
       });
-      
       this.doc.moveDown(0.5);
     });
-
     this.doc.addPage();
-  }
-
-  private buildSystemSpecs(systemStack: any): Array<{ label: string; value: string }> {
-    const specs: Array<{ label: string; value: string }> = [];
-
-    if (systemStack.substrate) {
-      specs.push({
-        label: 'Substrate',
-        value: this.formatValue(systemStack.substrate),
-      });
-    }
-
-    if (systemStack.material) {
-      specs.push({
-        label: 'Material',
-        value: this.formatValue(systemStack.material),
-      });
-    }
-
-    if (systemStack.insulated !== undefined) {
-      specs.push({
-        label: 'Insulated',
-        value: systemStack.insulated ? 'Yes' : 'No',
-      });
-    }
-
-    if (systemStack.exposure !== undefined) {
-      specs.push({
-        label: 'Exposure',
-        value: systemStack.exposure ? 'Yes' : 'No',
-      });
-    }
-
-    if (systemStack.attachment) {
-      specs.push({
-        label: 'Attachment',
-        value: this.formatValue(systemStack.attachment),
-      });
-    }
-
-    // Add subtype information based on area type
-    if (systemStack.roof_subtype) {
-      specs.push({
-        label: 'Roof Type',
-        value: this.formatValue(systemStack.roof_subtype),
-      });
-    }
-
-    if (systemStack.foundation_subtype) {
-      specs.push({
-        label: 'Foundation Type',
-        value: this.formatValue(systemStack.foundation_subtype),
-      });
-    }
-
-    if (systemStack.civil_work_subtype) {
-      specs.push({
-        label: 'Civil Work Type',
-        value: this.formatValue(systemStack.civil_work_subtype),
-      });
-    }
-
-    specs.push({
-      label: 'Warranty Period',
-      value: '20 Years',
-    });
-
-    return specs;
   }
 
   private groupLayersByCombination(layers: any[], targetCombination?: number): Array<{
@@ -652,10 +547,10 @@ export class PDFGeneratorService {
 
     layers.forEach((layer) => {
       const combo = layer.combination || 1;
-      
+
       // If targetCombination is specified, only include that combination
       if (targetCombination && combo !== targetCombination) return;
-      
+
       if (!grouped.has(combo)) {
         grouped.set(combo, []);
       }
@@ -686,8 +581,6 @@ export class PDFGeneratorService {
     this.doc.text('Email: info@bayset.com.au', this.margin, footerY + 30);
     this.doc.text('Web: www.bayset.com.au', this.margin, footerY + 45);
   }
-
-
 
   private formatValue(value: string | null | undefined): string {
     if (!value || typeof value !== 'string') {
