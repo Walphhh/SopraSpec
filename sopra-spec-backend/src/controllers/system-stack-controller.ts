@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import supabase from "../config/supabase-client";
 import { getStatusMessage, Status } from "@src/utils/status-codes";
+import { PDFGeneratorService } from '../services/pdf-gen-service';
+
 
 const ORDER = [
   "distributor",
@@ -431,6 +433,84 @@ const SystemStack = {
       });
     } catch (error: any) {
       console.error(error);
+      return res.status(Status.INTERNAL_SERVER_ERROR).json({
+        error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
+      });
+    }
+  },
+    /**
+   * Generate PDF specification for a system stack
+   */
+  generateSystemPDF: async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const projectInfo = req.body || {};
+
+    try {
+      // Fetch system stack with all layers
+      const { data: systemStack, error } = await supabase
+        .from('system_stack')
+        .select(
+          `
+          id,
+          distributor,
+          area_type,
+          substrate,
+          material,
+          insulated,
+          exposure,
+          attachment,
+          roof_subtype,
+          foundation_subtype,
+          civil_work_subtype,
+          system_stack_layer:system_stack_layer(
+            combination,
+            product:product_id(
+              id,
+              name,
+              layer,
+              distributor
+            )
+          )
+        `
+        )
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        return res.status(Status.BAD_REQUEST).json({
+          error: error.message || getStatusMessage(Status.BAD_REQUEST),
+        });
+      }
+
+      if (!systemStack) {
+        return res.status(Status.NOT_FOUND).json({
+          error: 'System stack not found',
+        });
+      }
+
+      // Transform the data to match SystemStackData interface
+      const transformedSystemStack = {
+        ...systemStack,
+        system_stack_layer: systemStack.system_stack_layer?.map((layer: any) => ({
+          combination: typeof layer.combination === 'number' ? layer.combination : Number(layer.combination) || 1,
+          product: {
+            id: String(layer.product?.id || ''),
+            name: String(layer.product?.name || ''),
+            layer: layer.product?.layer || undefined,
+            distributor: layer.product?.distributor || undefined,
+          }
+        })) || []
+      };
+
+      // Generate PDF
+      const pdfService = new PDFGeneratorService();
+      await pdfService.generateSystemSpecification(
+        transformedSystemStack,
+        projectInfo,
+        res
+      );
+    } catch (error: any) {
+      console.error('PDF Generation Error:', error);
       return res.status(Status.INTERNAL_SERVER_ERROR).json({
         error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
       });
