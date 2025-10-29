@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { Response } from 'express';
+import { ProjectArea, Project } from '@src/utils/types/project-types';
 
 interface SystemStackData {
   id: string;
@@ -21,16 +22,9 @@ interface SystemStackData {
       layer?: string;
       distributor?: string;
     };
-  }>;
-}
+    project_areas?: ProjectArea[]; // Add this to include project areas
 
-interface ProjectInfo {
-  project_name?: string;
-  location?: string;
-  architect?: string;
-  builder?: string;
-  prepared_by?: string;
-  date?: string;
+  }>;
 }
 
 export class PDFGeneratorService {
@@ -55,7 +49,8 @@ export class PDFGeneratorService {
 
   async generateSystemSpecification(
     systemStack: SystemStackData,
-    projectInfo: ProjectInfo,
+    projectInfo: Project,
+    projectAreas: ProjectArea[],
     res: Response
   ): Promise<void> {
     // Set response headers
@@ -70,6 +65,7 @@ export class PDFGeneratorService {
 
     // Generate PDF content
     this.addIntroPages(projectInfo);
+    this.addAppendixPage(projectAreas);
     this.addSystemDetails(systemStack);
     this.addProductLayers(systemStack);
     this.addFooter();
@@ -77,8 +73,8 @@ export class PDFGeneratorService {
     // Finalize PDF
     this.doc.end();
   }
-  private addIntroPages(projectInfo: ProjectInfo): void {
-    const { project_name, location, architect, builder, prepared_by, date } =
+  private addIntroPages(projectInfo: Project): void {
+    const { name, location, architect, builder, preparedBy, date } =
       projectInfo;
     // Page 1
     this.doc.fontSize(10).font('Helvetica').text('bayset.com.au', { align: 'right' });
@@ -93,12 +89,12 @@ export class PDFGeneratorService {
     });
     let y = this.doc.y + imageHeight + 20;
     const details = [
-      { label: 'Project', value: project_name || 'Project' },
+      { label: 'Project', value: name || 'Project' },
       { label: 'Date', value: date || new Date().toLocaleDateString() },
       { label: 'Location', value: location || 'Location' },
       { label: 'Architect', value: architect || 'Architects' },
       { label: 'Builder', value: builder || 'Builder' },
-      { label: 'Prepared by', value: prepared_by || 'Technical Team' },
+      { label: 'Prepared by', value: preparedBy || 'Technical Team' },
     ];
 
     details.forEach((detail) => {
@@ -355,7 +351,7 @@ export class PDFGeneratorService {
       { align: 'justify', lineGap: 1, width: this.pageWidth - 2 * this.margin }
     );
     this.doc.fontSize(10).font('Helvetica').text(
-      'All surfaces shall be dry, clean, smooth and free from sharp objects, laitance, oils, grease or any foreign materials which may inhibit or reduce adhesion. Falls across all horizontal surfaces should achieve 1:80 or 1:100 to the nearest drainage point within each segregated area, as per Australian Standards',
+      'All surfaces shall be dry, clean, smooth and free from sharp objects, laitance, oils, grease or any foreign materials which may inhibit or reduce adhesion. Falls across all horizontal surfaces should achieve 1:80 or 1:100 to the nearest drainage point within each segregated area, as per Australian Standards.',
       this.margin,
       this.doc.y + 10,
       { align: 'justify', lineGap: 1, width: this.pageWidth - 2 * this.margin }
@@ -374,88 +370,99 @@ export class PDFGeneratorService {
     );
     this.doc.addPage();
   }
-
-  private addSystemDetails(systemStack: SystemStackData): void {
-    this.addNewPageIfNeeded(200);
-
-    // System title based on area_type
-    const systemTitle = this.getSystemTitle(systemStack);
-
+  private addAppendixPage(projectAreas: ProjectArea[]): void {
+    // Draw grey rectangle at top
     this.doc
-      .fontSize(16)
-      .font('Helvetica-Bold')
-      .text(systemTitle, { underline: true });
+      .rect(0, 0, this.pageWidth, 0.95 * 72)
+      .fill('#f2f2f2');
 
+    this.doc.fillColor('black');
+    this.doc.fontSize(14).font('Helvetica-Bold').text('In this document', this.margin, 0.95 * 72 + 20);
     this.doc.moveDown(1);
 
-    // System specifications
-    const specs = this.buildSystemSpecs(systemStack);
+    // Group project areas by area_type
+    const groupedAreas = this.groupProjectAreasByType(projectAreas);
 
-    this.doc.fontSize(11).font('Helvetica-Bold');
+    // Iterate through each area type
+    Object.keys(groupedAreas).forEach((areaType, sectionIndex) => {
+      const areas = groupedAreas[areaType];
 
-    specs.forEach((spec) => {
-      this.addNewPageIfNeeded(60);
+      // Check if we need a new page
+      this.addNewPageIfNeeded(100 + areas.length * 60);
 
+      // Section header (e.g., "1. ROOFS")
+      this.doc.fillColor('black');
       this.doc
+        .fontSize(12)
         .font('Helvetica-Bold')
-        .text(`${spec.label}:`, this.margin, this.doc.y, { continued: true });
+        .text(`${sectionIndex + 1}. ${this.formatAreaTypeName(areaType).toUpperCase()}`, this.margin + 20, this.doc.y);
 
-      this.doc
-        .font('Helvetica')
-        .text(` ${spec.value}`, { width: this.contentWidth - 150 });
+      this.doc.moveDown(0.5);
+
+      // List each project area under this type
+      areas.forEach((area) => {
+        this.addNewPageIfNeeded(50);
+
+        // Area name with combination (e.g., "Exposed Roofs")
+        this.doc
+          .fontSize(11)
+          .font('Helvetica')
+          .text(
+            `${area.name} - Combination ${area.combination}`,
+            this.margin + 40,
+            this.doc.y + 5
+          );
+
+        this.doc.moveDown(0.8);
+      });
 
       this.doc.moveDown(0.5);
     });
 
-    this.doc.moveDown(1);
+    this.doc.fillColor('black');
+    this.doc.addPage();
+  }
+  private groupProjectAreasByType(projectAreas: ProjectArea[]): Record<string, ProjectArea[]> {
+    const grouped: Record<string, ProjectArea[]> = {};
+
+    projectAreas.forEach((area) => {
+      const areaType = area.areaType || 'Other';
+      if (!grouped[areaType]) {
+        grouped[areaType] = [];
+      }
+      grouped[areaType].push(area);
+    });
+
+    // Sort each group by combination
+    Object.keys(grouped).forEach((key) => {
+      grouped[key].sort((a, b) => a.combination - b.combination);
+    });
+
+    return grouped;
+  }
+
+  private formatAreaTypeName(areaType: string): string {
+    // Convert area_type to readable format
+    const typeMap: Record<string, string> = {
+      'roof': 'Roofs',
+      'internal_area': 'Internal Areas',
+      'balcony': 'Balconies & Planter Boxes',
+      'wall': 'Walls',
+      'car_park': 'Car Parks, Plaza Decks & Plant Rooms',
+      'foundation': 'Foundations',
+      'other': 'Other Areas',
+      'planter_box': 'Balconies & Planter Boxes',
+      'civil_work': 'Civil Works',
+    };
+
+    return typeMap[areaType.toLowerCase()] || this.formatValue(areaType);
+  }
+
+  private addSystemDetails(systemStack: SystemStackData): void {
+    
   }
 
   private addProductLayers(systemStack: SystemStackData): void {
-    if (!systemStack.system_stack_layer || systemStack.system_stack_layer.length === 0) {
-      return;
-    }
-
-    this.addNewPageIfNeeded(150);
-
-    this.doc
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text('System Components', { underline: true });
-
-    this.doc.moveDown(0.5);
-
-    // Group by combination
-    const combinations = this.groupByCombination(systemStack.system_stack_layer);
-
-    combinations.forEach((combo, index) => {
-      this.addNewPageIfNeeded(100);
-
-      if (combinations.length > 1) {
-        this.doc
-          .fontSize(12)
-          .font('Helvetica-Bold')
-          .text(`Combination ${combo.combination}:`);
-        this.doc.moveDown(0.3);
-      }
-
-      combo.products.forEach((product, prodIndex) => {
-        this.addNewPageIfNeeded(40);
-
-        const bulletPoint = `${prodIndex + 1}. `;
-        const layer = product.layer ? `[${product.layer}] ` : '';
-
-        this.doc
-          .fontSize(10)
-          .font('Helvetica-Bold')
-          .text(bulletPoint, this.margin, this.doc.y, { continued: true });
-
-        this.doc
-          .font('Helvetica')
-          .text(`${layer}${product.name}`, { width: this.contentWidth - 30 });
-      });
-
-      this.doc.moveDown(1);
-    });
   }
 
   private addFooter(): void {
@@ -475,89 +482,7 @@ export class PDFGeneratorService {
     this.doc.text('Web: www.bayset.com.au', this.margin, footerY + 45);
   }
 
-  private getSystemTitle(systemStack: SystemStackData): string {
-    const areaType = systemStack.area_type || 'System';
-    const subtype =
-      systemStack.roof_subtype ||
-      systemStack.foundation_subtype ||
-      systemStack.civil_work_subtype ||
-      '';
 
-    const formatted = areaType.charAt(0).toUpperCase() + areaType.slice(1).replace(/_/g, ' ');
-    const subtypeFormatted = subtype ? ` - ${subtype.replace(/_/g, ' ')}` : '';
-
-    return `${formatted}${subtypeFormatted}`;
-  }
-
-  private buildSystemSpecs(systemStack: SystemStackData): Array<{ label: string; value: string }> {
-    const specs: Array<{ label: string; value: string }> = [];
-
-    if (systemStack.substrate) {
-      specs.push({
-        label: 'Substrate',
-        value: this.formatValue(systemStack.substrate),
-      });
-    }
-
-    if (systemStack.material) {
-      specs.push({
-        label: 'Material',
-        value: this.formatValue(systemStack.material),
-      });
-    }
-
-    if (systemStack.insulated !== undefined) {
-      specs.push({
-        label: 'Insulated',
-        value: systemStack.insulated ? 'Yes' : 'No',
-      });
-    }
-
-    if (systemStack.exposure) {
-      specs.push({
-        label: 'Exposure',
-        value: this.formatValue(systemStack.exposure),
-      });
-    }
-
-    if (systemStack.attachment) {
-      specs.push({
-        label: 'Attachment',
-        value: this.formatValue(systemStack.attachment),
-      });
-    }
-
-    specs.push({
-      label: 'Warranty Period',
-      value: '20 Years',
-    });
-
-    return specs;
-  }
-
-  private groupByCombination(layers: SystemStackData['system_stack_layer']): Array<{
-    combination: number;
-    products: Array<{ name: string; layer: string | null; distributor: string | null }>;
-  }> {
-    if (!layers) return [];
-
-    const grouped = new Map<number, Array<any>>();
-
-    layers.forEach((layer) => {
-      const combo = layer.combination || 1;
-      if (!grouped.has(combo)) {
-        grouped.set(combo, []);
-      }
-      grouped.get(combo)?.push(layer.product);
-    });
-
-    return Array.from(grouped.entries())
-      .map(([combination, products]) => ({
-        combination,
-        products: products.filter((p) => p && p.name),
-      }))
-      .sort((a, b) => a.combination - b.combination);
-  }
 
   private formatValue(value: string | null | undefined): string {
     if (!value || typeof value !== 'string') {

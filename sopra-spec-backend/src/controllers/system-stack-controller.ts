@@ -438,19 +438,37 @@ const SystemStack = {
       });
     }
   },
-    /**
-   * Generate PDF specification for a system stack
-   */
-  generateSystemPDF: async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const projectInfo = req.body || {};
+  /**
+ * Generate PDF specification for entire project
+ */
+generateProjectPDF: async (req: Request, res: Response) => {
+  const { projectId } = req.params;
 
-    try {
-      // Fetch system stack with all layers
-      const { data: systemStack, error } = await supabase
-        .from('system_stack')
-        .select(
-          `
+  try {
+    // Fetch project information
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (projectError || !project) {
+      return res.status(Status.NOT_FOUND).json({
+        error: 'Project not found',
+      });
+    }
+
+    // Fetch all project areas with their system stacks
+    const { data: projectAreas, error: areasError } = await supabase
+      .from('project_areas')
+      .select(
+        `
+        id,
+        name,
+        area_type,
+        system_stack_id,
+        combination,
+        system_stack:system_stack_id(
           id,
           distributor,
           area_type,
@@ -461,61 +479,96 @@ const SystemStack = {
           attachment,
           roof_subtype,
           foundation_subtype,
-          civil_work_subtype,
-          system_stack_layer:system_stack_layer(
-            combination,
-            product:product_id(
-              id,
-              name,
-              layer,
-              distributor
-            )
-          )
-        `
+          civil_work_subtype
         )
-        .eq('id', id)
-        .single();
+      `
+      )
+      .eq('project_id', projectId)
+      .order('area_type', { ascending: true })
+      .order('combination', { ascending: true });
 
-      if (error) {
-        return res.status(Status.BAD_REQUEST).json({
-          error: error.message || getStatusMessage(Status.BAD_REQUEST),
-        });
-      }
-
-      if (!systemStack) {
-        return res.status(Status.NOT_FOUND).json({
-          error: 'System stack not found',
-        });
-      }
-
-      // Transform the data to match SystemStackData interface
-      const transformedSystemStack = {
-        ...systemStack,
-        system_stack_layer: systemStack.system_stack_layer?.map((layer: any) => ({
-          combination: typeof layer.combination === 'number' ? layer.combination : Number(layer.combination) || 1,
-          product: {
-            id: String(layer.product?.id || ''),
-            name: String(layer.product?.name || ''),
-            layer: layer.product?.layer || undefined,
-            distributor: layer.product?.distributor || undefined,
-          }
-        })) || []
-      };
-
-      // Generate PDF
-      const pdfService = new PDFGeneratorService();
-      await pdfService.generateSystemSpecification(
-        transformedSystemStack,
-        projectInfo,
-        res
-      );
-    } catch (error: any) {
-      console.error('PDF Generation Error:', error);
-      return res.status(Status.INTERNAL_SERVER_ERROR).json({
-        error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
+    if (areasError || !projectAreas || projectAreas.length === 0) {
+      return res.status(Status.NOT_FOUND).json({
+        error: 'No project areas found',
       });
     }
-  },
+
+    const projectInfo = {
+      project_name: project.name,
+      location: project.location,
+      architect: project.architect,
+      builder: project.builder,
+      prepared_by: project.prepared_by,
+      date: project.date,
+    };
+
+    // For the main system stack, use the first area's system stack
+    const firstAreaSystemStack = projectAreas[0].system_stack;
+    
+    // Ensure we have a valid system stack
+    if (!firstAreaSystemStack) {
+      return res.status(Status.BAD_REQUEST).json({
+        error: 'No system stack found for the first project area',
+      });
+    }
+
+    // Transform to match SystemStackData interface - firstAreaSystemStack is a single object from the foreign key relation
+    const mainSystemStack = {
+      id: (firstAreaSystemStack as any).id,
+      distributor: (firstAreaSystemStack as any).distributor,
+      area_type: (firstAreaSystemStack as any).area_type,
+      substrate: (firstAreaSystemStack as any).substrate,
+      material: (firstAreaSystemStack as any).material,
+      insulated: (firstAreaSystemStack as any).insulated,
+      exposure: (firstAreaSystemStack as any).exposure,
+      attachment: (firstAreaSystemStack as any).attachment,
+      roof_subtype: (firstAreaSystemStack as any).roof_subtype,
+      foundation_subtype: (firstAreaSystemStack as any).foundation_subtype,
+      civil_work_subtype: (firstAreaSystemStack as any).civil_work_subtype,
+    };
+
+    // Fix projectInfo to match Project interface
+    const projectInfoFixed = {
+      id: project.id,
+      name: project.name || 'Project',
+      architect: project.architect || 'Architects',
+      builder: project.builder || 'Builder',
+      installer: project.installer || 'Installer',
+      consultant: project.consultant || 'Consultant',
+      preparedBy: project.prepared_by || 'Technical Team',
+      location: project.location || 'Location',
+      date: project.date || new Date().toLocaleDateString(),
+      notes: project.notes || '',
+      thumbnail: project.thumbnail || '',
+      ownerId: project.owner_id || '',
+    };
+
+    // Transform projectAreas to match ProjectArea interface
+    const transformedProjectAreas = projectAreas.map((area: any) => ({
+      id: area.id,
+      areaType: area.area_type,
+      projectId: projectId,
+      systemStackId: area.system_stack_id,
+      name: area.name,
+      status: 'Draft' as const, // Default status
+      combination: area.combination,
+    }));
+
+    // Generate PDF
+    const pdfService = new PDFGeneratorService();
+    await pdfService.generateSystemSpecification(
+      mainSystemStack,
+      projectInfoFixed,
+      transformedProjectAreas,
+      res
+    );
+  } catch (error: any) {
+    console.error('PDF Generation Error:', error);
+    return res.status(Status.INTERNAL_SERVER_ERROR).json({
+      error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
+    });
+  }
+},
 };
 
 // 🔹 Generic enum-safe filter helper
