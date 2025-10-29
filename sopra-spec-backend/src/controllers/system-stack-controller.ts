@@ -458,7 +458,7 @@ generateProjectPDF: async (req: Request, res: Response) => {
       });
     }
 
-    // Fetch all project areas with their system stacks
+    // Fetch all project areas with their system stacks and layers
     const { data: projectAreas, error: areasError } = await supabase
       .from('project_areas')
       .select(
@@ -479,7 +479,16 @@ generateProjectPDF: async (req: Request, res: Response) => {
           attachment,
           roof_subtype,
           foundation_subtype,
-          civil_work_subtype
+          civil_work_subtype,
+          system_stack_layer:system_stack_layer(
+            combination,
+            product:product_id(
+              id,
+              name,
+              layer,
+              distributor
+            )
+          )
         )
       `
       )
@@ -543,23 +552,12 @@ generateProjectPDF: async (req: Request, res: Response) => {
       ownerId: project.owner_id || '',
     };
 
-    // Transform projectAreas to match ProjectArea interface
-    const transformedProjectAreas = projectAreas.map((area: any) => ({
-      id: area.id,
-      areaType: area.area_type,
-      projectId: projectId,
-      systemStackId: area.system_stack_id,
-      name: area.name,
-      status: 'Draft' as const, // Default status
-      combination: area.combination,
-    }));
-
-    // Generate PDF
+    // Generate PDF - pass raw projectAreas data to preserve system stack information
     const pdfService = new PDFGeneratorService();
     await pdfService.generateSystemSpecification(
       mainSystemStack,
       projectInfoFixed,
-      transformedProjectAreas,
+      projectAreas, // Pass raw data with system stack layers
       res
     );
   } catch (error: any) {
