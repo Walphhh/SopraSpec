@@ -13,6 +13,18 @@ import {
   getFont,
 } from '../utils/pdf-utils';
 
+const images =[
+  'src/assets/images/pic1.png',
+  'src/assets/images/pic2.png',
+  'src/assets/images/pic3.png',
+  'src/assets/images/pic4.png',
+  'src/assets/images/pic5.png',
+  'src/assets/images/pic6.png',
+  'src/assets/images/pic7.png',
+  'src/assets/images/pic8.png',
+  'src/assets/images/pic9.png',
+  'src/assets/images/pic10.jpg',
+];
 export class PDFGeneratorService {
   private doc: PDFKit.PDFDocument;
   private pageWidth: number = PDF_CONSTANTS.PAGE_WIDTH;
@@ -190,6 +202,7 @@ export class PDFGeneratorService {
       this.doc.y + 5,
       { align: 'justify', lineGap: 1, width: this.pageWidth - 2 * this.margin }
     );
+    this.addImageGrid(images);
     this.doc.addPage();
     // Page 3
     this.addGreyHeader();
@@ -698,6 +711,78 @@ export class PDFGeneratorService {
     this.doc.restore();
     this.doc.moveDown(0.3);
   }
+
+private addImageGrid(imagePaths: string[], options?: {
+  rows?: number;
+  columns?: number;
+  imageWidth?: number;
+  imageHeight?: number;
+  spacing?: number;
+  startX?: number;
+  startY?: number;
+  center?: boolean; // NEW: toggle for horizontal centering
+}): void {
+  // Default options
+  const {
+    rows = 2,
+    columns = 5,
+    imageWidth = 80,
+    imageHeight = 60,
+    spacing = 10,
+    startX = this.margin,
+    startY = this.doc.y + 20,
+    center = true
+  } = options || {};
+
+  // Calculate total grid dimensions
+  const totalWidth = (columns * imageWidth) + ((columns - 1) * spacing);
+  const totalHeight = (rows * imageHeight) + ((rows - 1) * spacing);
+
+  // Center the grid horizontally
+  const pageWidth = this.doc.page.width;
+  const gridStartX = center
+    ? (pageWidth - totalWidth) / 2
+    : startX;
+
+  let currentY = startY;
+
+  // Loop through rows and columns
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < columns; col++) {
+      const imageIndex = (row * columns) + col;
+
+      if (imageIndex < imagePaths.length) {
+        const imagePath = imagePaths[imageIndex];
+        const x = gridStartX + (col * (imageWidth + spacing));
+        const y = currentY + (row * (imageHeight + spacing));
+
+        try {
+          this.doc.image(imagePath, x, y, {
+            width: imageWidth,
+            height: imageHeight,
+            fit: [imageWidth, imageHeight],
+            align: 'center',
+            valign: 'center'
+          });
+        } catch (error) {
+          console.warn(`Failed to load image: ${imagePath}`, error);
+          this.doc.save();
+          this.doc
+            .rect(x, y, imageWidth, imageHeight)
+            .fontSize(8)
+            .text('Image not found', x, y + imageHeight / 2 - 4, {
+              width: imageWidth,
+              align: 'center'
+            });
+          this.doc.restore();
+        }
+      }
+    }
+  }
+
+  // Update Y position
+  this.doc.y = currentY + totalHeight + 20;
+}
 
   private addNewPageIfNeeded(requiredSpace: number): void {
     if (this.doc.y + requiredSpace > this.pageHeight - this.margin) {
