@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import supabase from "../config/supabase-client";
-import { getStatusMessage, Status } from "@src/utils/status-codes";
+import { getStatusMessage, Status } from "../utils/status-codes";
 import { PDFGeneratorService } from '../services/pdf-gen-service';
 
 
@@ -506,6 +506,92 @@ const SystemStack = {
       await pdfService.generateSystemSpecification(
         project,             // Pass project data
         projectAreas,        // Pass project areas data
+        res
+      );
+    } catch (error: any) {
+      console.error('PDF Generation Error:', error);
+      return res.status(Status.INTERNAL_SERVER_ERROR).json({
+        error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
+      });
+    }
+  },
+
+  /**
+   * Generate PDF specification for a specific project area
+   */
+  generateProjectAreaPDF: async (req: Request, res: Response) => {
+    const { projectId, projectAreaId } = req.params;
+
+    try {
+      // Fetch project information
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+
+      if (projectError || !project) {
+        return res.status(Status.NOT_FOUND).json({
+          error: 'Project not found',
+        });
+      }
+
+      // Fetch specific project area with system stack and layers
+      const { data: projectArea, error: areaError } = await supabase
+        .from('project_areas')
+        .select(
+          `
+          id,
+          name,
+          area_type,
+          system_stack_id,
+          combination,
+          system_stack:system_stack_id(
+            id,
+            distributor,
+            area_type,
+            substrate,
+            material,
+            insulated,
+            exposure,
+            attachment,
+            roof_subtype,
+            foundation_subtype,
+            civil_work_subtype,
+            system_stack_layer:system_stack_layer(
+              combination,
+              product:product_id(
+                id,
+                name,
+                layer,
+                distributor
+              )
+            )
+          )
+        `
+        )
+        .eq('id', projectAreaId)
+        .eq('project_id', projectId)
+        .single();
+
+      if (areaError || !projectArea) {
+        return res.status(Status.NOT_FOUND).json({
+          error: 'Project area not found',
+        });
+      }
+
+      // Ensure we have a valid system stack
+      if (!projectArea.system_stack) {
+        return res.status(Status.BAD_REQUEST).json({
+          error: 'No system stack found for this project area',
+        });
+      }
+
+      // Use raw database data directly - no transformation needed
+      const pdfService = new PDFGeneratorService();
+      await pdfService.generateSingleAreaPDF(
+        project,      // Pass raw project data
+        projectArea,  // Pass raw project area data
         res
       );
     } catch (error: any) {

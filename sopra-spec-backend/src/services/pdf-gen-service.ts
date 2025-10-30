@@ -55,6 +55,32 @@ export class PDFGeneratorService {
     // Finalize PDF
     this.doc.end();
   }
+
+  async generateSingleAreaPDF(
+    projectInfo: any, // Raw project data from database
+    projectArea: any, // Single project area with system stack data
+    res: Response
+  ): Promise<void> {
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="area-specification-${projectArea.id}.pdf"`
+    );
+
+    // Pipe the PDF to response
+    this.doc.pipe(res);
+
+    // Generate PDF content for single area
+    this.addIntroPages(projectInfo);
+    this.addAppendixPage([projectArea]); // Pass single area as array
+    this.addSystemDetails([projectArea]); // Pass single area as array
+    this.addFooter();
+
+    // Finalize PDF
+    this.doc.end();
+  }
+
   private addIntroPages(projectInfo: any): void {
     // Use raw database values with safe fallbacks (database uses snake_case)
     const name = getProjectValue(projectInfo.name, 'Project');

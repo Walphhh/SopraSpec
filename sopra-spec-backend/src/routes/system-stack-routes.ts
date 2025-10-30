@@ -9,4 +9,5 @@ router.post("/options", SystemStack.getDynamicSelectionOptions);
 router.get("/:id/layers", SystemStack.getSystemStackLayers);
 router.get("/:id", SystemStack.getSystemStackById);
 router.post('/projects/:projectId/generate-pdf', SystemStack.generateProjectPDF);
+router.post('/projects/:projectId/projectAreas/:projectAreaId/generate-pdf', SystemStack.generateProjectAreaPDF);
 export default router;
