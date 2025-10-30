@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 // Shared constants
 export const PDF_CONSTANTS = {
   PAGE_WIDTH: 595.28, // A4 width
@@ -7,6 +10,75 @@ export const PDF_CONSTANTS = {
   LOGO_HEIGHT: 300,
   LOGO2_HEIGHT: 2.02 * 72,
 } as const;
+
+// Font paths
+export const FONT_PATHS = {
+  CALIBRI_REGULAR: 'src/assets/fonts/calibri.ttf',
+  CALIBRI_BOLD: 'src/assets/fonts/calibri-bold.ttf',
+  CALIBRI_ITALIC: 'src/assets/fonts/calibri-italic.ttf',
+  CALIBRI_BOLD_ITALIC: 'src/assets/fonts/calibri-bolditalic.ttf',
+};
+
+// Check if font files exist
+export function checkFontAvailability(): { calibriAvailable: boolean; missingFonts: string[] } {
+  const missingFonts: string[] = [];
+  let calibriAvailable = true;
+
+  Object.entries(FONT_PATHS).forEach(([name, fontPath]) => {
+    if (!fs.existsSync(fontPath)) {
+      missingFonts.push(`${name}: ${fontPath}`);
+      calibriAvailable = false;
+    }
+  });
+
+  return { calibriAvailable, missingFonts };
+}
+
+// Register fonts with PDFKit document
+export function registerFonts(doc: PDFKit.PDFDocument): void {
+  const { calibriAvailable, missingFonts } = checkFontAvailability();
+  
+  if (calibriAvailable) {
+    try {
+      doc.registerFont('Calibri', FONT_PATHS.CALIBRI_REGULAR);
+      doc.registerFont('Calibri-Bold', FONT_PATHS.CALIBRI_BOLD);
+      doc.registerFont('Calibri-Italic', FONT_PATHS.CALIBRI_ITALIC);
+      doc.registerFont('Calibri-BoldItalic', FONT_PATHS.CALIBRI_BOLD_ITALIC);
+    } catch (error) {
+      console.warn('Failed to register Calibri fonts, falling back to Helvetica:', error);
+    }
+  }
+}
+
+// Get font name with fallback
+export function getFont(fontType: 'regular' | 'bold' | 'italic' | 'bolditalic' = 'regular'): string {
+  const { calibriAvailable } = checkFontAvailability();
+  
+  if (calibriAvailable) {
+    switch (fontType) {
+      case 'bold':
+        return 'Calibri-Bold';
+      case 'italic':
+        return 'Calibri-Italic';
+      case 'bolditalic':
+        return 'Calibri-BoldItalic';
+      default:
+        return 'Calibri';
+    }
+  } else {
+    // Fallback to Helvetica
+    switch (fontType) {
+      case 'bold':
+        return 'Helvetica-Bold';
+      case 'italic':
+        return 'Helvetica-Oblique';
+      case 'bolditalic':
+        return 'Helvetica-BoldOblique';
+      default:
+        return 'Helvetica';
+    }
+  }
+}
 
 export const PDF_COLORS = {
   GREY_HEADER: '#f2f2f2',
