@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import supabase from "../config/supabase-client";
-import { getStatusMessage, Status } from "@src/utils/status-codes";
+import { getStatusMessage, Status } from "../utils/status-codes";
 import { PDFGeneratorService } from '../services/pdf-gen-service';
+import {
+  transformProjectInfo,
+  transformSystemStackData
+} from '../utils/pdf-utils';
 
 
 const ORDER = [
@@ -439,134 +443,98 @@ const SystemStack = {
     }
   },
   /**
- * Generate PDF specification for entire project
- */
-generateProjectPDF: async (req: Request, res: Response) => {
-  const { projectId } = req.params;
+   * Generate PDF specification for entire project
+   */
+  generateProjectPDF: async (req: Request, res: Response) => {
+    const { projectId } = req.params;
 
-  try {
-    // Fetch project information
-    const { data: project, error: projectError } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('id', projectId)
-      .single();
+    try {
+      // Fetch project information
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
 
-    if (projectError || !project) {
-      return res.status(Status.NOT_FOUND).json({
-        error: 'Project not found',
-      });
-    }
+      if (projectError || !project) {
+        return res.status(Status.NOT_FOUND).json({
+          error: 'Project not found',
+        });
+      }
 
-    // Fetch all project areas with their system stacks and layers
-    const { data: projectAreas, error: areasError } = await supabase
-      .from('project_areas')
-      .select(
-        `
-        id,
-        name,
-        area_type,
-        system_stack_id,
-        combination,
-        system_stack:system_stack_id(
+      // Fetch all project areas with their system stacks and layers
+      const { data: projectAreas, error: areasError } = await supabase
+        .from('project_areas')
+        .select(
+          `
           id,
-          distributor,
+          name,
           area_type,
-          substrate,
-          material,
-          insulated,
-          exposure,
-          attachment,
-          roof_subtype,
-          foundation_subtype,
-          civil_work_subtype,
-          system_stack_layer:system_stack_layer(
-            combination,
-            product:product_id(
-              id,
-              name,
-              layer,
-              distributor
+          system_stack_id,
+          combination,
+          system_stack:system_stack_id(
+            id,
+            distributor,
+            area_type,
+            substrate,
+            material,
+            insulated,
+            exposure,
+            attachment,
+            roof_subtype,
+            foundation_subtype,
+            civil_work_subtype,
+            system_stack_layer:system_stack_layer(
+              combination,
+              product:product_id(
+                id,
+                name,
+                layer,
+                distributor
+              )
             )
           )
+        `
         )
-      `
-      )
-      .eq('project_id', projectId)
-      .order('area_type', { ascending: true })
-      .order('combination', { ascending: true });
+        .eq('project_id', projectId)
+        .order('area_type', { ascending: true })
+        .order('combination', { ascending: true });
 
-    if (areasError || !projectAreas || projectAreas.length === 0) {
-      return res.status(Status.NOT_FOUND).json({
-        error: 'No project areas found',
+      if (areasError || !projectAreas || projectAreas.length === 0) {
+        return res.status(Status.NOT_FOUND).json({
+          error: 'No project areas found',
+        });
+      }
+
+      // For the main system stack, use the first area's system stack
+      const firstAreaSystemStack = projectAreas[0].system_stack;
+      
+      // Ensure we have a valid system stack
+      if (!firstAreaSystemStack) {
+        return res.status(Status.BAD_REQUEST).json({
+          error: 'No system stack found for the first project area',
+        });
+      }
+
+      // Transform data using shared utilities
+      const mainSystemStack = transformSystemStackData(firstAreaSystemStack);
+      const projectInfoFixed = transformProjectInfo(project);
+
+      // Generate PDF using shared utilities
+      const pdfService = new PDFGeneratorService();
+      await pdfService.generateSystemSpecification(
+        mainSystemStack,
+        projectInfoFixed,
+        projectAreas,
+        res
+      );
+    } catch (error: any) {
+      console.error('PDF Generation Error:', error);
+      return res.status(Status.INTERNAL_SERVER_ERROR).json({
+        error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
       });
     }
-
-    const projectInfo = {
-      project_name: project.name,
-      location: project.location,
-      architect: project.architect,
-      builder: project.builder,
-      prepared_by: project.prepared_by,
-      date: project.date,
-    };
-
-    // For the main system stack, use the first area's system stack
-    const firstAreaSystemStack = projectAreas[0].system_stack;
-    
-    // Ensure we have a valid system stack
-    if (!firstAreaSystemStack) {
-      return res.status(Status.BAD_REQUEST).json({
-        error: 'No system stack found for the first project area',
-      });
-    }
-
-    // Transform to match SystemStackData interface - firstAreaSystemStack is a single object from the foreign key relation
-    const mainSystemStack = {
-      id: (firstAreaSystemStack as any).id,
-      distributor: (firstAreaSystemStack as any).distributor,
-      area_type: (firstAreaSystemStack as any).area_type,
-      substrate: (firstAreaSystemStack as any).substrate,
-      material: (firstAreaSystemStack as any).material,
-      insulated: (firstAreaSystemStack as any).insulated,
-      exposure: (firstAreaSystemStack as any).exposure,
-      attachment: (firstAreaSystemStack as any).attachment,
-      roof_subtype: (firstAreaSystemStack as any).roof_subtype,
-      foundation_subtype: (firstAreaSystemStack as any).foundation_subtype,
-      civil_work_subtype: (firstAreaSystemStack as any).civil_work_subtype,
-    };
-
-    // Fix projectInfo to match Project interface
-    const projectInfoFixed = {
-      id: project.id,
-      name: project.name || 'Project',
-      architect: project.architect || 'Architects',
-      builder: project.builder || 'Builder',
-      installer: project.installer || 'Installer',
-      consultant: project.consultant || 'Consultant',
-      preparedBy: project.prepared_by || 'Technical Team',
-      location: project.location || 'Location',
-      date: project.date || new Date().toLocaleDateString(),
-      notes: project.notes || '',
-      thumbnail: project.thumbnail || '',
-      ownerId: project.owner_id || '',
-    };
-
-    // Generate PDF - pass raw projectAreas data to preserve system stack information
-    const pdfService = new PDFGeneratorService();
-    await pdfService.generateSystemSpecification(
-      mainSystemStack,
-      projectInfoFixed,
-      projectAreas, // Pass raw data with system stack layers
-      res
-    );
-  } catch (error: any) {
-    console.error('PDF Generation Error:', error);
-    return res.status(Status.INTERNAL_SERVER_ERROR).json({
-      error: error.message || getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-    });
-  }
-},
+  },
 };
 
 // 🔹 Generic enum-safe filter helper

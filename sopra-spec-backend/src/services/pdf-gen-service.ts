@@ -1,37 +1,21 @@
-import PDFDocument from 'pdfkit';
+import PDFDocument = require('pdfkit');
 import { Response } from 'express';
-import { ProjectArea, Project } from '@src/utils/types/project-types';
-
-interface SystemStackData {
-  id: string;
-  distributor: string;
-  area_type: string;
-  substrate?: string;
-  material?: string;
-  insulated?: boolean;
-  exposure?: string;
-  attachment?: string;
-  roof_subtype?: string;
-  foundation_subtype?: string;
-  civil_work_subtype?: string;
-  system_stack_layer?: Array<{
-    combination: number;
-    product: {
-      id: string;
-      name: string;
-      layer?: string;
-      distributor?: string;
-    };
-    project_areas?: ProjectArea[]; // Add this to include project areas
-
-  }>;
-}
+import {
+  PDF_CONSTANTS,
+  PDF_COLORS,
+  SystemStackData,
+  TransformedProjectInfo,
+  formatAreaTypeName,
+  formatValue,
+  groupProjectAreasByType,
+  groupLayersByCombination,
+} from '../utils/pdf-utils';
 
 export class PDFGeneratorService {
   private doc: PDFKit.PDFDocument;
-  private pageWidth: number = 595.28; // A4 width
-  private pageHeight: number = 841.89; // A4 height
-  private margin: number = 50;
+  private pageWidth: number = PDF_CONSTANTS.PAGE_WIDTH;
+  private pageHeight: number = PDF_CONSTANTS.PAGE_HEIGHT;
+  private margin: number = PDF_CONSTANTS.MARGIN;
   private contentWidth: number;
 
   constructor() {
@@ -49,7 +33,7 @@ export class PDFGeneratorService {
 
   async generateSystemSpecification(
     systemStack: SystemStackData,
-    projectInfo: Project,
+    projectInfo: TransformedProjectInfo,
     projectAreas: any[], // Enhanced project areas with system stack data
     res: Response
   ): Promise<void> {
@@ -66,27 +50,27 @@ export class PDFGeneratorService {
     // Generate PDF content
     this.addIntroPages(projectInfo);
     this.addAppendixPage(projectAreas);
-    this.addSystemDetails(projectAreas); // Pass enhanced project areas
+    this.addSystemDetails(projectAreas);
     this.addFooter();
 
     // Finalize PDF
     this.doc.end();
   }
-  private addIntroPages(projectInfo: Project): void {
-    const { name, location, architect, builder, preparedBy, date } =
-      projectInfo;
+  private addIntroPages(projectInfo: TransformedProjectInfo): void {
+    const { name, location, architect, builder, preparedBy, date } = projectInfo;
+    
     // Page 1
     this.doc.fontSize(10).font('Helvetica').text('bayset.com.au', { align: 'right' });
     this.doc.moveDown(5);
     this.doc.fontSize(32).font('Helvetica-Bold').text('Project', { align: 'left' });
     this.doc.fontSize(32).font('Helvetica-Bold').text('Specification', { align: 'left' });
     this.doc.moveDown(1);
-    const imageHeight = 300;
+    
     this.doc.image('src/assets/images/logo.png', 0, this.doc.y, {
       width: this.pageWidth,
-      height: 300,  // adjust height as needed
+      height: PDF_CONSTANTS.LOGO_HEIGHT,
     });
-    let y = this.doc.y + imageHeight + 20;
+    let y = this.doc.y + PDF_CONSTANTS.LOGO_HEIGHT + 20;
     const details = [
       { label: 'Project', value: name || 'Project' },
       { label: 'Date', value: date || new Date().toLocaleDateString() },
@@ -108,19 +92,14 @@ export class PDFGeneratorService {
 
     this.doc.addPage();
     // Page 2
-    // Draw grey rectangle at top
-    this.doc
-      .rect(0, 0, this.pageWidth, 0.95 * 72) // x, y, width, height
-      .fill('#f2f2f2'); // light grey color
-    this.doc.fillColor('black');
+    this.addGreyHeader();
     this.doc.moveDown(4);
     this.doc.image('src/assets/images/logo2.jpg', this.margin, this.doc.y, {
-      width: this.pageWidth - 2 * this.margin,   // full width minus margins
-      height: 2.02 * 72,  // adjust height as needed
+      width: this.pageWidth - 2 * this.margin,
+      height: PDF_CONSTANTS.LOGO2_HEIGHT,
       align: 'center',
     });
-    // Start text **just below the logo**
-    let textY = this.doc.y + 2.02 * 72 + 20;
+    let textY = this.doc.y + PDF_CONSTANTS.LOGO2_HEIGHT + 20;
     this.doc.fontSize(14).font('Helvetica-Bold').text('About SOPREMA', this.margin, textY);
     this.doc.fillColor('#323f4a');
 
@@ -177,13 +156,9 @@ export class PDFGeneratorService {
     );
     this.doc.addPage();
     // Page 3
-    // Draw grey rectangle at top
-    this.doc
-      .rect(0, 0, this.pageWidth, 0.95 * 72) // x, y, width, height
-      .fill('#f2f2f2'); // light grey color
-    this.doc.fillColor('black');
-    this.doc.fontSize(14).font('Helvetica-Bold').text('Scope', this.margin, 0.95 * 72 + 20);
-    this.doc.fillColor('#323f4a');
+    this.addGreyHeader();
+    this.doc.fontSize(14).font('Helvetica-Bold').text('Scope', this.margin, PDF_CONSTANTS.GREY_HEADER_HEIGHT + 20);
+    this.doc.fillColor(PDF_COLORS.TEXT_SECONDARY);
     this.doc.fontSize(10).font('Helvetica').text(
       'Supply and install waterproofing membranes or protective coating systems aimed at protecting the clients building from the effects of water ingress and carbonation.',
       this.margin,
@@ -280,13 +255,9 @@ export class PDFGeneratorService {
     );
     this.doc.addPage();
     // Page 4
-    // Draw grey rectangle at top
-    this.doc
-      .rect(0, 0, this.pageWidth, 0.95 * 72) // x, y, width, height
-      .fill('#f2f2f2'); // light grey color
-    this.doc.fillColor('black');
-    this.doc.fontSize(14).font('Helvetica-Bold').text('Product & Application Requirements', this.margin, 0.95 * 72 + 20);
-    this.doc.fillColor('#323f4a');
+    this.addGreyHeader();
+    this.doc.fontSize(14).font('Helvetica-Bold').text('Product & Application Requirements', this.margin, PDF_CONSTANTS.GREY_HEADER_HEIGHT + 20);
+    this.doc.fillColor(PDF_COLORS.TEXT_SECONDARY);
     this.doc.fontSize(10).font('Helvetica').text(
       'Substitutions of waterproofing membranes, protective coatings or tile adhesive or their systems are not permitted.',
       this.margin,
@@ -369,18 +340,21 @@ export class PDFGeneratorService {
     );
     this.doc.addPage();
   }
-  private addAppendixPage(projectAreas: ProjectArea[]): void {
-    // Draw grey rectangle at top
-    this.doc
-      .rect(0, 0, this.pageWidth, 0.95 * 72)
-      .fill('#f2f2f2');
 
-    this.doc.fillColor('black');
-    this.doc.fontSize(14).font('Helvetica-Bold').text('In this document', this.margin, 0.95 * 72 + 20);
+  private addGreyHeader(): void {
+    this.doc
+      .rect(0, 0, this.pageWidth, PDF_CONSTANTS.GREY_HEADER_HEIGHT)
+      .fill(PDF_COLORS.GREY_HEADER);
+    this.doc.fillColor(PDF_COLORS.BLACK);
+  }
+
+  private addAppendixPage(projectAreas: any[]): void {
+    this.addGreyHeader();
+    this.doc.fontSize(14).font('Helvetica-Bold').text('In this document', this.margin, PDF_CONSTANTS.GREY_HEADER_HEIGHT + 20);
     this.doc.moveDown(1);
 
     // Group project areas by area_type
-    const groupedAreas = this.groupProjectAreasByType(projectAreas);
+    const groupedAreas = groupProjectAreasByType(projectAreas);
 
     // Iterate through each area type
     Object.keys(groupedAreas).forEach((areaType, sectionIndex) => {
@@ -390,11 +364,11 @@ export class PDFGeneratorService {
       this.addNewPageIfNeeded(100 + areas.length * 60);
 
       // Section header (e.g., "1. ROOFS")
-      this.doc.fillColor('black');
+      this.doc.fillColor(PDF_COLORS.BLACK);
       this.doc
         .fontSize(12)
         .font('Helvetica-Bold')
-        .text(`${sectionIndex + 1}. ${this.formatAreaTypeName(areaType).toUpperCase()}`, this.margin + 20, this.doc.y);
+        .text(`${sectionIndex + 1}. ${formatAreaTypeName(areaType).toUpperCase()}`, this.margin + 20, this.doc.y);
 
       this.doc.moveDown(0.5);
 
@@ -421,56 +395,17 @@ export class PDFGeneratorService {
       this.doc.moveDown(0.5);
     });
 
-    this.doc.fillColor('black');
+    this.doc.fillColor(PDF_COLORS.BLACK);
     this.doc.addPage();
-  }
-  private groupProjectAreasByType(projectAreas: any[]): Record<string, any[]> {
-    const grouped: Record<string, any[]> = {};
-
-    projectAreas.forEach((area) => {
-      // Handle both transformed and raw database formats
-      const areaType = area.areaType || area.area_type || 'Other';
-      if (!grouped[areaType]) {
-        grouped[areaType] = [];
-      }
-      grouped[areaType].push(area);
-    });
-
-    // Sort each group by combination
-    Object.keys(grouped).forEach((key) => {
-      grouped[key].sort((a, b) => (a.combination || 1) - (b.combination || 1));
-    });
-
-    return grouped;
-  }
-
-  private formatAreaTypeName(areaType: string): string {
-    // Convert area_type to readable format
-    const typeMap: Record<string, string> = {
-      'roof': 'Roofs',
-      'internal_area': 'Internal Areas',
-      'balcony': 'Balconies & Planter Boxes',
-      'wall': 'Walls',
-      'car_park': 'Car Parks, Plaza Decks & Plant Rooms',
-      'foundation': 'Foundations',
-      'other': 'Other Areas',
-      'planter_box': 'Balconies & Planter Boxes',
-      'civil_work': 'Civil Works',
-    };
-
-    return typeMap[areaType.toLowerCase()] || this.formatValue(areaType);
   }
 
   private addSystemDetails(projectAreas: any[]): void {
-    // Add page header
-    this.doc
-      .rect(0, 0, this.pageWidth, 0.95 * 72)
-      .fill('#f2f2f2');
+    this.addGreyHeader();
     this.doc.moveDown(2);
+    this.doc.fillColor(PDF_COLORS.BLACK);
 
-    this.doc.fillColor('black');
     // Group project areas by area type
-    const groupedAreas = this.groupProjectAreasByType(projectAreas);
+    const groupedAreas = groupProjectAreasByType(projectAreas);
 
     // Display each area type and its project areas with system details
     Object.keys(groupedAreas).forEach((areaType) => {
@@ -480,7 +415,7 @@ export class PDFGeneratorService {
       this.doc
         .fontSize(14)
         .font('Helvetica-Bold')
-        .text(`${this.formatAreaTypeName(areaType).toUpperCase()}`, this.margin, this.doc.y + 20);
+        .text(`${formatAreaTypeName(areaType).toUpperCase()}`, this.margin, this.doc.y + 20);
 
       this.doc.moveDown(0.5);
 
@@ -489,7 +424,7 @@ export class PDFGeneratorService {
         this.addNewPageIfNeeded(200);
 
         // Project area header
-        this.doc.fillColor('black');
+        this.doc.fillColor(PDF_COLORS.BLACK);
         this.doc
           .fontSize(12)
           .font('Helvetica-Bold')
@@ -502,9 +437,8 @@ export class PDFGeneratorService {
 
           // System layers
           if (systemStack.system_stack_layer && systemStack.system_stack_layer.length > 0) {
-
             // Group layers by combination
-            const layersByCombination = this.groupLayersByCombination(systemStack.system_stack_layer, area.combination);
+            const layersByCombination = groupLayersByCombination(systemStack.system_stack_layer, area.combination);
 
             layersByCombination.forEach((combo) => {
               this.addNewPageIfNeeded(50 + combo.products.length * 20);
@@ -519,7 +453,7 @@ export class PDFGeneratorService {
               combo.products.forEach((product) => {
                 this.addNewPageIfNeeded(20);
                 const currentY = this.doc.y;
-                const layer = product.layer ? `${this.formatValue(product.layer)}: ` : '';
+                const layer = product.layer ? `${formatValue(product.layer)}: ` : '';
                 this.doc.fontSize(10)
                   .font('Helvetica-Bold')
                   .text(layer, this.margin + 20, currentY, { width: 80, continued: false })
@@ -528,7 +462,6 @@ export class PDFGeneratorService {
                   .font('Helvetica-Oblique')
                   .text(product.name, this.margin + 120, currentY, { width: 300 })
                   .lineGap(1);
-                ;
                 this.doc.moveDown(0.5);
               });
             });
@@ -538,34 +471,6 @@ export class PDFGeneratorService {
       this.doc.moveDown(0.5);
     });
     this.doc.addPage();
-  }
-
-  private groupLayersByCombination(layers: any[], targetCombination?: number): Array<{
-    combination: number;
-    products: Array<{ name: string; layer: string | null; distributor: string | null }>;
-  }> {
-    if (!layers) return [];
-
-    const grouped = new Map<number, Array<any>>();
-
-    layers.forEach((layer) => {
-      const combo = layer.combination || 1;
-
-      // If targetCombination is specified, only include that combination
-      if (targetCombination && combo !== targetCombination) return;
-
-      if (!grouped.has(combo)) {
-        grouped.set(combo, []);
-      }
-      grouped.get(combo)?.push(layer.product);
-    });
-
-    return Array.from(grouped.entries())
-      .map(([combination, products]) => ({
-        combination,
-        products: products.filter((p) => p && p.name),
-      }))
-      .sort((a, b) => a.combination - b.combination);
   }
 
   private addFooter(): void {
@@ -583,16 +488,6 @@ export class PDFGeneratorService {
 
     this.doc.text('Email: info@bayset.com.au', this.margin, footerY + 30);
     this.doc.text('Web: www.bayset.com.au', this.margin, footerY + 45);
-  }
-
-  private formatValue(value: string | null | undefined): string {
-    if (!value || typeof value !== 'string') {
-      return String(value || 'Unknown');
-    }
-    return value
-      .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
   }
 
   private addNewPageIfNeeded(requiredSpace: number): void {
