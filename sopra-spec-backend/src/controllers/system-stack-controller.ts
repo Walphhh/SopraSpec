@@ -1,11 +1,7 @@
 import { Request, Response } from "express";
 import supabase from "../config/supabase-client";
-import { getStatusMessage, Status } from "../utils/status-codes";
+import { getStatusMessage, Status } from "@src/utils/status-codes";
 import { PDFGeneratorService } from '../services/pdf-gen-service';
-import {
-  transformProjectInfo,
-  transformSystemStackData
-} from '../utils/pdf-utils';
 
 
 const ORDER = [
@@ -516,16 +512,11 @@ const SystemStack = {
         });
       }
 
-      // Transform data using shared utilities
-      const mainSystemStack = transformSystemStackData(firstAreaSystemStack);
-      const projectInfoFixed = transformProjectInfo(project);
-
-      // Generate PDF using shared utilities
       const pdfService = new PDFGeneratorService();
       await pdfService.generateSystemSpecification(
-        mainSystemStack,
-        projectInfoFixed,
-        projectAreas,
+        firstAreaSystemStack, // Pass raw system stack data
+        project,             // Pass raw project data
+        projectAreas,        // Pass raw project areas data
         res
       );
     } catch (error: any) {

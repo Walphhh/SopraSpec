@@ -41,75 +41,19 @@ export const formatAreaTypeName = (areaType: string): string => {
   return AREA_TYPE_MAP[areaType.toLowerCase()] || formatValue(areaType);
 };
 
-// Project info transformation
-export interface TransformedProjectInfo {
-  id: string;
-  name: string;
-  architect: string;
-  builder: string;
-  installer: string;
-  consultant: string;
-  preparedBy: string;
-  location: string;
-  date: string;
-  notes: string;
-  thumbnail: string;
-  ownerId: string;
-}
+// Helper functions for handling raw database values with safe fallbacks
+export const getProjectValue = (value: any, fallback: string): string => {
+  return value || fallback;
+};
 
-export const transformProjectInfo = (project: any): TransformedProjectInfo => ({
-  id: project.id,
-  name: project.name || 'Project',
-  architect: project.architect || 'Architects',
-  builder: project.builder || 'Builder',
-  installer: project.installer || 'Installer',
-  consultant: project.consultant || 'Consultant',
-  preparedBy: project.prepared_by || 'Technical Team',
-  location: project.location || 'Location',
-  date: project.date || new Date().toLocaleDateString(),
-  notes: project.notes || '',
-  thumbnail: project.thumbnail || '',
-  ownerId: project.owner_id || '',
-});
-
-// System stack data interface
-export interface SystemStackData {
-  id: string;
-  distributor: string;
-  area_type: string;
-  substrate?: string;
-  material?: string;
-  insulated?: boolean;
-  exposure?: string;
-  attachment?: string;
-  roof_subtype?: string;
-  foundation_subtype?: string;
-  civil_work_subtype?: string;
-  system_stack_layer?: Array<{
-    combination: number;
-    product: {
-      id: string;
-      name: string;
-      layer?: string;
-      distributor?: string;
-    };
-  }>;
-}
-
-export const transformSystemStackData = (systemStack: any): SystemStackData => ({
-  id: systemStack.id,
-  distributor: systemStack.distributor,
-  area_type: systemStack.area_type,
-  substrate: systemStack.substrate,
-  material: systemStack.material,
-  insulated: systemStack.insulated,
-  exposure: systemStack.exposure,
-  attachment: systemStack.attachment,
-  roof_subtype: systemStack.roof_subtype,
-  foundation_subtype: systemStack.foundation_subtype,
-  civil_work_subtype: systemStack.civil_work_subtype,
-  system_stack_layer: systemStack.system_stack_layer,
-});
+export const getFormattedDate = (dateValue: any): string => {
+  if (!dateValue) return new Date().toLocaleDateString();
+  if (typeof dateValue === 'string') {
+    const date = new Date(dateValue);
+    return isNaN(date.getTime()) ? new Date().toLocaleDateString() : date.toLocaleDateString();
+  }
+  return new Date().toLocaleDateString();
+};
 
 // Group project areas by type utility
 export const groupProjectAreasByType = (projectAreas: any[]): Record<string, any[]> => {

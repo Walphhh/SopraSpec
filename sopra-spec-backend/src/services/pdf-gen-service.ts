@@ -3,10 +3,10 @@ import { Response } from 'express';
 import {
   PDF_CONSTANTS,
   PDF_COLORS,
-  SystemStackData,
-  TransformedProjectInfo,
   formatAreaTypeName,
   formatValue,
+  getProjectValue,
+  getFormattedDate,
   groupProjectAreasByType,
   groupLayersByCombination,
 } from '../utils/pdf-utils';
@@ -32,8 +32,8 @@ export class PDFGeneratorService {
   }
 
   async generateSystemSpecification(
-    systemStack: SystemStackData,
-    projectInfo: TransformedProjectInfo,
+    systemStack: any, // Raw system stack from database
+    projectInfo: any, // Raw project data from database
     projectAreas: any[], // Enhanced project areas with system stack data
     res: Response
   ): Promise<void> {
@@ -56,8 +56,14 @@ export class PDFGeneratorService {
     // Finalize PDF
     this.doc.end();
   }
-  private addIntroPages(projectInfo: TransformedProjectInfo): void {
-    const { name, location, architect, builder, preparedBy, date } = projectInfo;
+  private addIntroPages(projectInfo: any): void {
+    // Use raw database values with safe fallbacks (database uses snake_case)
+    const name = getProjectValue(projectInfo.name, 'Project');
+    const location = getProjectValue(projectInfo.location, 'Location');
+    const architect = getProjectValue(projectInfo.architect, 'Architects');
+    const builder = getProjectValue(projectInfo.builder, 'Builder');
+    const preparedBy = getProjectValue(projectInfo.prepared_by, 'Technical Team');
+    const date = getFormattedDate(projectInfo.date);
     
     // Page 1
     this.doc.fontSize(10).font('Helvetica').text('bayset.com.au', { align: 'right' });
