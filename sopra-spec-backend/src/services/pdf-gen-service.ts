@@ -442,10 +442,17 @@ export class PDFGeneratorService {
 
     // Group project areas by area type
     const groupedAreas = groupProjectAreasByType(projectAreas);
+    const areaTypeKeys = Object.keys(groupedAreas);
 
     // Display each area type and its project areas with system details
-    Object.keys(groupedAreas).forEach((areaType) => {
+    areaTypeKeys.forEach((areaType, areaTypeIndex) => {
       const areas = groupedAreas[areaType];
+
+      // Add separator line between different area types (except for first one)
+      if (areaTypeIndex > 0) {
+        this.addNewPageIfNeeded(50);
+        this.drawSeparatorLine();
+      }
 
       // Area type header
       this.doc
@@ -454,10 +461,18 @@ export class PDFGeneratorService {
         .text(`${formatAreaTypeName(areaType).toUpperCase()}`, this.margin, this.doc.y + 20);
 
       this.doc.moveDown(0.5);
+      this.drawSeparatorLine();
+      this.doc.moveDown(0.5);
+
 
       // Display each project area under this type
-      areas.forEach((area: any) => {
+      areas.forEach((area: any, areaIndex: number) => {
         this.addNewPageIfNeeded(200);
+
+        // Add separator line between different project areas within same type (except for first one)
+        if (areaIndex > 0) {
+          this.drawSeparatorLine();
+        }
 
         // Project area header
         this.doc.fillColor(PDF_COLORS.BLACK);
@@ -659,6 +674,31 @@ export class PDFGeneratorService {
         y + 125,
       );
   }
+
+  private drawSeparatorLine(): void {
+    // Add some spacing before the line
+    this.doc.moveDown(0.3);
+    
+    const currentY = this.doc.y;
+    const lineWidth = 0.5;
+    const lineColor =  PDF_COLORS.BLACK;
+    
+    // Save current state
+    this.doc.save();
+    
+    // Draw the line
+    this.doc
+      .strokeColor(lineColor)
+      .lineWidth(lineWidth)
+      .moveTo(this.margin, currentY)
+      .lineTo(this.pageWidth - this.margin, currentY)
+      .stroke();
+    
+    // Restore state and add spacing after
+    this.doc.restore();
+    this.doc.moveDown(0.3);
+  }
+
   private addNewPageIfNeeded(requiredSpace: number): void {
     if (this.doc.y + requiredSpace > this.pageHeight - this.margin) {
       this.doc.addPage();
