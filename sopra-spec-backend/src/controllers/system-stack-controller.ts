@@ -502,21 +502,10 @@ const SystemStack = {
         });
       }
 
-      // For the main system stack, use the first area's system stack
-      const firstAreaSystemStack = projectAreas[0].system_stack;
-      
-      // Ensure we have a valid system stack
-      if (!firstAreaSystemStack) {
-        return res.status(Status.BAD_REQUEST).json({
-          error: 'No system stack found for the first project area',
-        });
-      }
-
       const pdfService = new PDFGeneratorService();
       await pdfService.generateSystemSpecification(
-        firstAreaSystemStack, // Pass raw system stack data
-        project,             // Pass raw project data
-        projectAreas,        // Pass raw project areas data
+        project,             // Pass project data
+        projectAreas,        // Pass project areas data
         res
       );
     } catch (error: any) {

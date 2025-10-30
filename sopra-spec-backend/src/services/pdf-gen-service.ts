@@ -32,7 +32,6 @@ export class PDFGeneratorService {
   }
 
   async generateSystemSpecification(
-    systemStack: any, // Raw system stack from database
     projectInfo: any, // Raw project data from database
     projectAreas: any[], // Enhanced project areas with system stack data
     res: Response
@@ -41,7 +40,7 @@ export class PDFGeneratorService {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="specification-${systemStack.id}.pdf"`
+      `attachment; filename="specification-${projectInfo.id}.pdf"`
     );
 
     // Pipe the PDF to response
@@ -434,7 +433,7 @@ export class PDFGeneratorService {
         this.doc
           .fontSize(12)
           .font('Helvetica-Bold')
-          .text(`${area.name} - Combination ${area.combination}`, this.margin + 20, this.doc.y);
+          .text(`${area.name}`, this.margin + 20, this.doc.y);
         this.doc.moveDown(0.3);
 
         // System stack details
@@ -453,7 +452,7 @@ export class PDFGeneratorService {
                 this.doc
                   .fontSize(10)
                   .font('Helvetica-Bold')
-                  .text(`Combination ${combo.combination}:`, this.margin + 60, this.doc.y);
+                  .text(`Combination ${combo.combination}:`, this.margin + 20, this.doc.y);
                 this.doc.moveDown(0.2);
               }
               combo.products.forEach((product) => {

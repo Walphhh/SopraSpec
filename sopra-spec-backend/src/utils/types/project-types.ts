@@ -56,7 +56,6 @@ export interface ProjectArea {
   drawings?: Drawing[];
   systems?: System[];
   specifications?: Specification[];
-  combination: number;
 }
 
 export interface NewProject {
