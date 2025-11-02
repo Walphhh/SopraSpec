@@ -88,14 +88,35 @@ export default function HomePage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 p-6">
-        <h1>You are not logged in</h1>
-        <Link
-          href="/auth/login"
-          className="rounded bg-[#0072CE] px-4 py-2 text-white"
-        >
-          Login Here
-        </Link>
+      // 1. Full-page wrapper (with top margin)
+      <div className="p-6 mt-10 flex justify-center">
+
+        {/* 2. Card styling (shadow, rounded corners, padding) */}
+        <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg text-center">
+
+          {/* 3. Welcoming text */}
+          <h1 className="text-2xl font-bold mb-2">Welcome</h1>
+          <p className="text-gray-600 mb-6 text-lg">
+            Please log in to manage your projects
+          </p>
+
+          {/* 4. Login button (full width) */}
+          <Link
+            href="/auth/login"
+            className="w-full inline-block rounded bg-[#0072CE] px-4 py-2 text-white font-semibold transition hover:bg-blue-700"
+          >
+            Login
+          </Link>
+          
+          {/* 5. Sign up link added back */}
+          <p className="mt-4 text-sm text-gray-500">
+            Don&apos;t have an account?{" "}
+            <Link href="/auth/signup" className="text-[#0072CE] hover:underline">
+              Sign up
+            </Link>
+          </p>
+          
+        </div>
       </div>
     );
   }
