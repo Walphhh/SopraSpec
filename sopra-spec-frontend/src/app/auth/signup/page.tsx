@@ -1,5 +1,6 @@
 import Image from "next/image";
 import SignupForm from "./components/SignupForm";
+import Link from "next/link"; // 1. ADD THIS IMPORT
 
 export default function Page() {
   return (
@@ -7,13 +8,17 @@ export default function Page() {
       <div className="w-full max-w-md">
         {/* logo */}
         <div className="flex justify-center">
-          <Image
-            src="/soprema-logo.png"
-            alt="SOPREMA"
-            width={360}
-            height={110}
-            priority
-          />
+          {/* 2. ADD THIS LINK WRAPPER */}
+          <Link href="/">
+            <Image
+              src="/soprema-logo.png"
+              alt="SOPREMA"
+              width={360}
+              height={110}
+              priority
+            />
+          </Link>
+          {/* 3. END THE LINK WRAPPER */}
         </div>
 
         {/* title */}
