@@ -3,6 +3,7 @@
 import OptionCard from "@/components/OptionCard";
 import { useSystemWizard } from "@/lib/hooks/useSystemWizard";
 import { Divide } from "lucide-react";
+import Link from "next/link";
 
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
@@ -176,14 +177,20 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                             );
                           })}
                         </ul>
-                        <button
-                          className="bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90"
-                          onClick={() => {
-                            console.log(combo.products);
-                          }}
-                        >
-                          Add to Project
-                        </button>
+                        {projectId && (
+                          <Link
+                            href={`/projects/${projectId}/areas/new?stackId=${rec.id}&combination=${combo.combination}&areaType=${wizard.selections.area_type}`}
+                          >
+                            <button
+                              className={`bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90`}
+                              onClick={() => {
+                                console.log(combo.products);
+                              }}
+                            >
+                              Add to Project
+                            </button>
+                          </Link>
+                        )}
                       </div>
                     ));
                   })()}
@@ -233,15 +240,6 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                       )}
                     </div>
                   </div>
-                  {projectId && (
-                    <button
-                      className="rounded bg-[#0072CE] text-white px-4 py-2 opacity-70 cursor-not-allowed"
-                      disabled
-                      title="Save to Project (coming soon)"
-                    >
-                      Save to Project
-                    </button>
-                  )}
                 </div>
                 <div className="space-y-2">
                   {(() => {

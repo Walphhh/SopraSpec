@@ -19,7 +19,7 @@ export default function SystemsPage() {
         </div>
       ) : (
         <div>
-          <h1>Explore SOPREMA Systems</h1>
+          {/* <h1>Explore SOPREMA Systems</h1>
           <h4>Select Our Partner Distributor</h4>
 
           <div className="distributor-grid">
@@ -29,7 +29,8 @@ export default function SystemsPage() {
                 dist={{ ...dist, href: `/systems/${dist.slug}` }}
               />
             ))}
-          </div>
+          </div> */}
+          <SystemWizard />
         </div>
       )}
     </div>

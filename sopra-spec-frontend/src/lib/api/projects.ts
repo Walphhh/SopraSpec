@@ -77,7 +77,6 @@ const mapProject = (row: Record<string, unknown>): Project => {
     date: toString(row.date),
     notes: toOptionalString(row.notes),
     thumbnail,
-    warranties: [],
   };
 };
 

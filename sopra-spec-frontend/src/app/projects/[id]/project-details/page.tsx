@@ -33,7 +33,6 @@ export default function ProjectDetailsPage() {
       date: "",
       notes: "",
       thumbnail: "",
-      warranties: [],
     }),
     []
   );
@@ -139,7 +138,7 @@ export default function ProjectDetailsPage() {
       setMissingFields([]);
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.error || "Failed to save project.");
+      setError(err.response?.data?.error || "Failed to update project.");
     }
   };
 

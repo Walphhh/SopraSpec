@@ -161,8 +161,17 @@ const ProjectController = {
 
   addProjectArea: async (req: Request, res: Response) => {
     try {
-      const { project_id, name, area_type, drawing, system_stack_id, status } =
-        req.body;
+      const {
+        project_id,
+        name,
+        area_type,
+        drawing,
+        system_stack_id,
+        status,
+        combination,
+      } = req.body;
+
+      console.log("Received addProjectArea request:", req.body);
 
       // Validate required fields
       if (!project_id || !name || !area_type) {
@@ -182,6 +191,7 @@ const ProjectController = {
             drawing: drawing || null,
             system_stack_id: system_stack_id || null,
             status: status || "pending", // optional default
+            combination: combination,
           },
         ])
         .select()

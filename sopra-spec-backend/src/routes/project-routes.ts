@@ -11,7 +11,7 @@ router.delete("/:id", ProjectController.deleteProject);
 router.patch("/:id", ProjectController.updateProject);
 
 // Project Areas
-router.post("/:projectId/areas", ProjectController.createProjectArea);
+router.post("/:projectId/areas", ProjectController.addProjectArea);
 router.get("/:projectId/areas", ProjectController.getProjectAreas);
 
 export default router;
