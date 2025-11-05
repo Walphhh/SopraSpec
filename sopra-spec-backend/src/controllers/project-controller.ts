@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import supabase from "@src/config/supabase-client";
 import { Status, getStatusMessage } from "@src/utils/status-codes";
+import { toSnakeCase } from "@src/utils/to-snake-case";
 
 const ProjectController = {
   /**
@@ -152,6 +153,105 @@ const ProjectController = {
 
       return res.status(Status.SUCCESS).json({ project_areas: data });
     } catch {
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
+  addProjectArea: async (req: Request, res: Response) => {
+    try {
+      const { project_id, name, area_type, drawing, system_stack_id, status } =
+        req.body;
+
+      // Validate required fields
+      if (!project_id || !name || !area_type) {
+        return res.status(Status.BAD_REQUEST).json({
+          error: "Missing required fields: project_id, name, or area_type",
+        });
+      }
+
+      // Insert new area into project_areas table
+      const { data, error } = await supabase
+        .from("project_areas")
+        .insert([
+          {
+            project_id,
+            name,
+            area_type,
+            drawing: drawing || null,
+            system_stack_id: system_stack_id || null,
+            status: status || "pending", // optional default
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+      }
+
+      return res.status(Status.SUCCESS).json({
+        message: "Project area added successfully",
+        project_area: data,
+      });
+    } catch (err) {
+      console.error("Error adding project area:", err);
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
+  updateProject: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params; // project id from URL
+      const updates = req.body; // fields to update
+      const mappedUpdates = toSnakeCase(updates);
+
+      if (!id) {
+        return res
+          .status(Status.BAD_REQUEST)
+          .json({ error: "Missing project ID" });
+      }
+
+      // Optional: validate that updates has at least one key
+      if (!updates || Object.keys(updates).length === 0) {
+        return res
+          .status(Status.BAD_REQUEST)
+          .json({ error: "No update fields provided" });
+      }
+
+      // Check if project exists first
+      const { data: existing, error: fetchError } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !existing) {
+        return res
+          .status(Status.NOT_FOUND)
+          .json({ error: "Project not found" });
+      }
+
+      // Perform the update
+      const { data, error } = await supabase
+        .from("projects")
+        .update(mappedUpdates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+      }
+
+      return res.status(Status.SUCCESS).json({
+        project: data,
+      });
+    } catch (err) {
+      console.error("Update project error:", err);
       return res
         .status(Status.INTERNAL_SERVER_ERROR)
         .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });

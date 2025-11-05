@@ -7,6 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 
 import type { Project } from "@/utils/types";
 import { useProjects } from "@/features/projects/hooks/useProjects";
+import axios from "axios";
 
 export default function ProjectDetailsPage() {
   const router = useRouter();
@@ -92,14 +93,14 @@ export default function ProjectDetailsPage() {
     { key: "notes", label: "Notes", required: false },
   ] as const;
 
-  const handleChange = (key: typeof fields[number]["key"], value: string) => {
+  const handleChange = (key: (typeof fields)[number]["key"], value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setIsModified(true);
     setError("");
     setMissingFields((prev) => prev.filter((f) => f !== key));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const missing: string[] = [];
     for (const field of fields) {
       if (field.required && !form[field.key]?.toString().trim()) {
@@ -113,26 +114,32 @@ export default function ProjectDetailsPage() {
       return;
     }
 
-    const newProjectId = project.id || uuidv4();
-    const updatedProject: Project = {
-      ...project,
-      ...form,
-      id: newProjectId,
-      ownerId: project.ownerId,
-      warranties: project.warranties ?? [],
-      thumbnail: form.thumbnail ?? project.thumbnail ?? "",
-      notes: form.notes ?? project.notes ?? "",
-    };
+    try {
+      const newProjectId = project.id || uuidv4();
+      const payload = {
+        id: newProjectId,
+        owner_id: project.ownerId,
+        ...form,
+      };
 
-    setProject(updatedProject);
-    setIsModified(false);
-    setError("");
-    setMissingFields([]);
+      console.log(payload);
 
-    alert("Project details saved! (persisting to backend not yet implemented)");
+      const res = await axios.patch(
+        `http://localhost:5000/api/projects/${projectId}`,
+        payload
+      );
 
-    if (!project.id) {
-      router.replace(`/projects/${newProjectId}/project-details`);
+      const savedProject = res.data;
+
+      console.log(savedProject);
+
+      setProject(savedProject);
+      setIsModified(false);
+      setError("");
+      setMissingFields([]);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.error || "Failed to save project.");
     }
   };
 
@@ -157,21 +164,27 @@ export default function ProjectDetailsPage() {
                 <input
                   type="text"
                   value={form[field.key] ?? ""}
-                  placeholder={projectId === "new" ? `Please enter ${field.label}` : ""}
+                  placeholder={
+                    projectId === "new" ? `Please enter ${field.label}` : ""
+                  }
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   onFocus={() => setFocusedField(field.key)}
                   onBlur={() => setFocusedField(null)}
-                  className={`w-full border-2 rounded p-2 pr-10 outline-none bg-transparent transition-colors ${isError
-                    ? "border-red-500 text-red-500"
-                    : "border-[#7C878E] text-[#7C878E] focus:border-[#0072CE] focus:text-[#0072CE]"}`}
+                  className={`w-full border-2 rounded p-2 pr-10 outline-none bg-transparent transition-colors ${
+                    isError
+                      ? "border-red-500 text-red-500"
+                      : "border-[#7C878E] text-[#7C878E] focus:border-[#0072CE] focus:text-[#0072CE]"
+                  }`}
                 />
                 <Pencil
                   size={18}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${focusedField === field.key
-                    ? "text-[#0072CE]"
-                    : isError
+                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
+                    focusedField === field.key
+                      ? "text-[#0072CE]"
+                      : isError
                       ? "text-red-500"
-                      : "text-[#7C878E]"}`}
+                      : "text-[#7C878E]"
+                  }`}
                 />
               </div>
             </div>
@@ -217,7 +230,9 @@ export default function ProjectDetailsPage() {
 
         <button
           className={`px-6 py-3 font-bold rounded text-white ${
-            isModified ? "bg-[#0072CE] hover:bg-[#005fa8]" : "bg-gray-400 cursor-not-allowed"
+            isModified
+              ? "bg-[#0072CE] hover:bg-[#005fa8]"
+              : "bg-gray-400 cursor-not-allowed"
           }`}
           disabled={!isModified}
           onClick={handleSave}
