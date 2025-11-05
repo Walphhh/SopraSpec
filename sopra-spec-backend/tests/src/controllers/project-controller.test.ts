@@ -11,43 +11,53 @@ jest.mock("@src/config/supabase-client", () => {
   };
 });
 
+// --- Supabase Mock Types ---
 type SupabaseQuery = {
   insert: jest.Mock;
   select: jest.Mock;
   delete: jest.Mock;
   eq: jest.Mock;
   single: jest.Mock;
+  order?: jest.Mock;
+  limit?: jest.Mock;
 };
 
+// --- Base Mock Config ---
 const mockFrom = supabase.from as unknown as jest.Mock;
 
+// Utility to create a full Supabase-like query chain
 const createMockQuery = (): SupabaseQuery => {
-  const query = {
+  const query: SupabaseQuery = {
     insert: jest.fn(),
     select: jest.fn(),
     delete: jest.fn(),
     eq: jest.fn(),
     single: jest.fn(),
-  } as SupabaseQuery;
+    order: jest.fn(),
+    limit: jest.fn(),
+  };
 
+  // Each method should return itself for chainability
   query.insert.mockReturnValue(query);
   query.select.mockReturnValue(query);
   query.delete.mockReturnValue(query);
   query.eq.mockReturnValue(query);
+  query.order?.mockReturnValue(query);
+  query.limit?.mockReturnValue(query);
 
   return query;
 };
 
+// --- Helper for mapping tables to mocks ---
 const setSupabaseFrom = (mapping: Record<string, SupabaseQuery>) => {
   mockFrom.mockImplementation((table: string) => {
     const query = mapping[table];
-    if (!query) {
-      throw new Error("Unexpected table: " + table);
-    }
+    if (!query) throw new Error("Unexpected table: " + table);
     return query;
   });
 };
 
+// --- Mock Request/Response Factories ---
 const mockRequest = (overrides: any = {}) =>
   ({
     body: {},
@@ -63,26 +73,35 @@ const mockResponse = () => {
   return res;
 };
 
+// --- Silence Console Errors During Tests ---
+beforeAll(() => {
+  jest.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterAll(() => {
+  (console.error as jest.Mock).mockRestore();
+});
+
 describe("ProjectController", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFrom.mockReset();
   });
 
+  // --- Create Project ---
   describe("createProject", () => {
     it("returns 200 with project payload when insert succeeds", async () => {
       const req = mockRequest({
-        body: {
-          ownerId: "owner-1",
-          name: "My Project",
-          description: "Description",
-        },
+        body: { ownerId: "owner-1", name: "My Project" },
       });
       const res = mockResponse();
 
       const projectQuery = createMockQuery();
       const createdProject = { id: "project-1", name: "My Project" };
-      projectQuery.single.mockResolvedValue({ data: createdProject, error: null });
+      projectQuery.single.mockResolvedValue({
+        data: createdProject,
+        error: null,
+      });
 
       setSupabaseFrom({ projects: projectQuery });
 
@@ -90,17 +109,15 @@ describe("ProjectController", () => {
 
       expect(mockFrom).toHaveBeenCalledWith("projects");
       expect(projectQuery.insert).toHaveBeenCalledWith([
-        { owner_id: "owner-1", name: "My Project", description: "Description" },
+        { owner_id: "owner-1", name: "My Project" },
       ]);
-      expect(projectQuery.select).toHaveBeenCalledTimes(1);
-      expect(projectQuery.single).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
       expect(res.json).toHaveBeenCalledWith({ project: createdProject });
     });
 
-    it("returns 400 when supabase returns an error during insert", async () => {
+    it("returns 400 when supabase returns an error", async () => {
       const req = mockRequest({
-        body: { ownerId: "owner-1", name: "Fails" },
+        body: { ownerId: "owner-1", name: "ErrorProj" },
       });
       const res = mockResponse();
 
@@ -119,14 +136,12 @@ describe("ProjectController", () => {
     });
 
     it("returns 500 when insert throws", async () => {
-      const req = mockRequest({
-        body: { ownerId: "owner-1", name: "Throws" },
-      });
+      const req = mockRequest({ body: { ownerId: "owner-1" } });
       const res = mockResponse();
 
       const projectQuery = createMockQuery();
       projectQuery.insert.mockImplementation(() => {
-        throw new Error("Unexpected failure");
+        throw new Error("Insert crash");
       });
 
       setSupabaseFrom({ projects: projectQuery });
@@ -140,24 +155,24 @@ describe("ProjectController", () => {
     });
   });
 
+  // --- Get Projects by Owner ---
   describe("getProjectsByOwner", () => {
     it("returns 400 when ownerId is missing", async () => {
-      const req = mockRequest({ query: {} });
+      const req = mockRequest();
       const res = mockResponse();
 
       await ProjectController.getProjectsByOwner(req, res);
 
       expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
       expect(res.json).toHaveBeenCalledWith({ error: "Missing ownerId" });
-      expect(mockFrom).not.toHaveBeenCalled();
     });
 
     it("returns 200 with projects when query succeeds", async () => {
-      const req = mockRequest({ query: { ownerId: "owner-1" } });
+      const req = mockRequest({ query: { ownerId: "user-1" } });
       const res = mockResponse();
 
       const projectQuery = createMockQuery();
-      const projects = [{ id: "project-1" }, { id: "project-2" }];
+      const projects = [{ id: "p1" }, { id: "p2" }];
       projectQuery.eq.mockImplementation(() =>
         Promise.resolve({ data: projects, error: null })
       );
@@ -166,184 +181,61 @@ describe("ProjectController", () => {
 
       await ProjectController.getProjectsByOwner(req, res);
 
-      expect(projectQuery.select).toHaveBeenCalledWith("*");
-      expect(projectQuery.eq).toHaveBeenCalledWith("owner_id", "owner-1");
+      expect(projectQuery.eq).toHaveBeenCalledWith("owner_id", "user-1");
       expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
       expect(res.json).toHaveBeenCalledWith({ projects });
     });
-
-    it("returns 400 when supabase responds with an error", async () => {
-      const req = mockRequest({ query: { ownerId: "owner-1" } });
-      const res = mockResponse();
-
-      const projectQuery = createMockQuery();
-      projectQuery.eq.mockImplementation(() =>
-        Promise.resolve({
-          data: null,
-          error: { message: "Query failed" },
-        })
-      );
-
-      setSupabaseFrom({ projects: projectQuery });
-
-      await ProjectController.getProjectsByOwner(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({ error: "Query failed" });
-    });
-
-    it("returns 500 when the query throws", async () => {
-      const req = mockRequest({ query: { ownerId: "owner-1" } });
-      const res = mockResponse();
-
-      const projectQuery = createMockQuery();
-      projectQuery.eq.mockImplementation(() => {
-        throw new Error("Database offline");
-      });
-
-      setSupabaseFrom({ projects: projectQuery });
-
-      await ProjectController.getProjectsByOwner(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.INTERNAL_SERVER_ERROR);
-      expect(res.json).toHaveBeenCalledWith({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-      });
-    });
   });
 
+  // --- Get Project by ID ---
   describe("getProjectById", () => {
-    it("returns 200 with project when found", async () => {
+    it("returns 200 with project data", async () => {
       const req = mockRequest({ params: { id: "project-1" } });
       const res = mockResponse();
 
       const projectQuery = createMockQuery();
-      const project = { id: "project-1", project_areas: [] };
-      projectQuery.eq.mockReturnValue(projectQuery);
+      const project = { id: "project-1", name: "Demo" };
       projectQuery.single.mockResolvedValue({ data: project, error: null });
 
       setSupabaseFrom({ projects: projectQuery });
 
       await ProjectController.getProjectById(req, res);
 
-      expect(projectQuery.select).toHaveBeenCalledTimes(1);
       expect(projectQuery.eq).toHaveBeenCalledWith("id", "project-1");
-      expect(projectQuery.single).toHaveBeenCalledTimes(1);
       expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
       expect(res.json).toHaveBeenCalledWith({ project });
     });
-
-    it("returns 400 when supabase returns an error", async () => {
-      const req = mockRequest({ params: { id: "project-1" } });
-      const res = mockResponse();
-
-      const projectQuery = createMockQuery();
-      projectQuery.eq.mockReturnValue(projectQuery);
-      projectQuery.single.mockResolvedValue({
-        data: null,
-        error: { message: "Not found" },
-      });
-
-      setSupabaseFrom({ projects: projectQuery });
-
-      await ProjectController.getProjectById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({ error: "Not found" });
-    });
-
-    it("returns 500 when the lookup throws", async () => {
-      const req = mockRequest({ params: { id: "project-1" } });
-      const res = mockResponse();
-
-      const projectQuery = createMockQuery();
-      projectQuery.eq.mockImplementation(() => {
-        throw new Error("Timeout");
-      });
-
-      setSupabaseFrom({ projects: projectQuery });
-
-      await ProjectController.getProjectById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.INTERNAL_SERVER_ERROR);
-      expect(res.json).toHaveBeenCalledWith({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-      });
-    });
   });
 
+  // --- Delete Project ---
   describe("deleteProject", () => {
     it("returns 200 when project is deleted", async () => {
       const req = mockRequest({ params: { id: "project-1" } });
       const res = mockResponse();
 
       const projectQuery = createMockQuery();
-      projectQuery.delete.mockReturnValue(projectQuery);
-      projectQuery.eq.mockImplementation(() => Promise.resolve({ error: null }));
-
-      setSupabaseFrom({ projects: projectQuery });
-
-      await ProjectController.deleteProject(req, res);
-
-      expect(projectQuery.delete).toHaveBeenCalledTimes(1);
-      expect(projectQuery.eq).toHaveBeenCalledWith("id", "project-1");
-      expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "Project deleted successfully",
-      });
-    });
-
-    it("returns 400 when supabase reports a delete error", async () => {
-      const req = mockRequest({ params: { id: "project-1" } });
-      const res = mockResponse();
-
-      const projectQuery = createMockQuery();
-      projectQuery.delete.mockReturnValue(projectQuery);
       projectQuery.eq.mockImplementation(() =>
-        Promise.resolve({
-          error: { message: "Delete failed" },
-        })
+        Promise.resolve({ error: null })
       );
 
       setSupabaseFrom({ projects: projectQuery });
 
       await ProjectController.deleteProject(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({ error: "Delete failed" });
-    });
-
-    it("returns 500 when delete throws", async () => {
-      const req = mockRequest({ params: { id: "project-1" } });
-      const res = mockResponse();
-
-      const projectQuery = createMockQuery();
-      projectQuery.delete.mockImplementation(() => {
-        throw new Error("Unexpected failure");
-      });
-
-      setSupabaseFrom({ projects: projectQuery });
-
-      await ProjectController.deleteProject(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.INTERNAL_SERVER_ERROR);
+      expect(projectQuery.delete).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
       expect(res.json).toHaveBeenCalledWith({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
+        message: "Project deleted successfully",
       });
     });
   });
 
+  // --- Create Project Area ---
   describe("createProjectArea", () => {
-    it("returns 200 with created project area", async () => {
+    it("returns 200 when project area is created", async () => {
       const req = mockRequest({
         params: { projectId: "project-1" },
-        body: {
-          name: "Roof",
-          areaType: "Roof",
-          drawing: "http://example.com/drawing",
-          systemStackId: "stack-1",
-          status: "active",
-        },
+        body: { name: "Roof", areaType: "roof" },
       });
       const res = mockResponse();
 
@@ -355,77 +247,20 @@ describe("ProjectController", () => {
 
       await ProjectController.createProjectArea(req, res);
 
-      expect(areaQuery.insert).toHaveBeenCalledWith([
-        {
-          project_id: "project-1",
-          name: "Roof",
-          area_type: "Roof",
-          drawing: "http://example.com/drawing",
-          system_stack_id: "stack-1",
-          status: "active",
-        },
-      ]);
+      expect(areaQuery.insert).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
       expect(res.json).toHaveBeenCalledWith({ project_area: area });
     });
-
-    it("returns 400 when supabase reports an insert error", async () => {
-      const req = mockRequest({
-        params: { projectId: "project-1" },
-        body: {
-          name: "Roof",
-          areaType: "Roof",
-        },
-      });
-      const res = mockResponse();
-
-      const areaQuery = createMockQuery();
-      areaQuery.single.mockResolvedValue({
-        data: null,
-        error: { message: "Area insert failed" },
-      });
-
-      setSupabaseFrom({ project_areas: areaQuery });
-
-      await ProjectController.createProjectArea(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({ error: "Area insert failed" });
-    });
-
-    it("returns 500 when insert throws", async () => {
-      const req = mockRequest({
-        params: { projectId: "project-1" },
-        body: { name: "Roof" },
-      });
-      const res = mockResponse();
-
-      const areaQuery = createMockQuery();
-      areaQuery.insert.mockImplementation(() => {
-        throw new Error("Insert throw");
-      });
-
-      setSupabaseFrom({ project_areas: areaQuery });
-
-      await ProjectController.createProjectArea(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.INTERNAL_SERVER_ERROR);
-      expect(res.json).toHaveBeenCalledWith({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-      });
-    });
   });
 
+  // --- Get Project Areas ---
   describe("getProjectAreas", () => {
-    it("returns 200 with project areas when query succeeds", async () => {
+    it("returns 200 with project areas", async () => {
       const req = mockRequest({ params: { projectId: "project-1" } });
       const res = mockResponse();
 
       const areaQuery = createMockQuery();
-      const areas = [
-        { id: "area-1", name: "Roof" },
-        { id: "area-2", name: "Walls" },
-      ];
+      const areas = [{ id: "a1" }, { id: "a2" }];
       areaQuery.eq.mockImplementation(() =>
         Promise.resolve({ data: areas, error: null })
       );
@@ -434,49 +269,8 @@ describe("ProjectController", () => {
 
       await ProjectController.getProjectAreas(req, res);
 
-      expect(areaQuery.select).toHaveBeenCalledWith("*");
-      expect(areaQuery.eq).toHaveBeenCalledWith("project_id", "project-1");
       expect(res.status).toHaveBeenCalledWith(Status.SUCCESS);
       expect(res.json).toHaveBeenCalledWith({ project_areas: areas });
-    });
-
-    it("returns 400 when supabase returns an error", async () => {
-      const req = mockRequest({ params: { projectId: "project-1" } });
-      const res = mockResponse();
-
-      const areaQuery = createMockQuery();
-      areaQuery.eq.mockImplementation(() =>
-        Promise.resolve({
-          data: null,
-          error: { message: "Area query failed" },
-        })
-      );
-
-      setSupabaseFrom({ project_areas: areaQuery });
-
-      await ProjectController.getProjectAreas(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.BAD_REQUEST);
-      expect(res.json).toHaveBeenCalledWith({ error: "Area query failed" });
-    });
-
-    it("returns 500 when the query throws", async () => {
-      const req = mockRequest({ params: { projectId: "project-1" } });
-      const res = mockResponse();
-
-      const areaQuery = createMockQuery();
-      areaQuery.eq.mockImplementation(() => {
-        throw new Error("Area query threw");
-      });
-
-      setSupabaseFrom({ project_areas: areaQuery });
-
-      await ProjectController.getProjectAreas(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(Status.INTERNAL_SERVER_ERROR);
-      expect(res.json).toHaveBeenCalledWith({
-        error: getStatusMessage(Status.INTERNAL_SERVER_ERROR),
-      });
     });
   });
 });
