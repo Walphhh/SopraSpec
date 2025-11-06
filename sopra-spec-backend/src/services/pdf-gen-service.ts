@@ -515,7 +515,12 @@ export class PDFGeneratorService {
                 this.doc.moveDown(0.2);
               }
               combo.products.forEach((product) => {
-                this.addNewPageIfNeeded(20);
+                const rawTdsUrl =
+                  product && typeof product.tds_url === 'string'
+                    ? product.tds_url.trim()
+                    : '';
+                const hasTdsUrl = rawTdsUrl.length > 0;
+                this.addNewPageIfNeeded(hasTdsUrl ? 35 : 20);
                 const currentY = this.doc.y;
                 const layer = product.layer ? `${formatValue(product.layer)}: ` : '';
                 this.doc.fontSize(10)
@@ -526,7 +531,23 @@ export class PDFGeneratorService {
                   .font(getFont('italic'))
                   .text(product.name, this.margin + 120, currentY, { width: 300 })
                   .lineGap(1);
-                this.doc.moveDown(0.5);
+                if (hasTdsUrl) {
+                  const linkY = this.doc.y + 2;
+                  const linkTarget = /^https?:\/\//i.test(rawTdsUrl)
+                    ? rawTdsUrl
+                    : `https://${rawTdsUrl}`;
+                  this.doc
+                    .fontSize(9)
+                    .font(getFont('regular'))
+                    .fillColor(PDF_COLORS.TEXT_SECONDARY)
+                    .text(rawTdsUrl, this.margin + 120, linkY, {
+                      width: 300,
+                      link: linkTarget,
+                      underline: true,
+                    });
+                  this.doc.fillColor(PDF_COLORS.BLACK);
+                }
+                this.doc.moveDown(hasTdsUrl ? 0.8 : 0.5);
               });
             });
           }

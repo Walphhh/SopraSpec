@@ -149,11 +149,11 @@ export const groupProjectAreasByType = (projectAreas: any[]): Record<string, any
 
 // Group layers by combination utility
 export const groupLayersByCombination = (
-  layers: any[], 
+  layers: any[],
   targetCombination?: number
 ): Array<{
   combination: number;
-  products: Array<{ name: string; layer: string | null; distributor: string | null }>;
+  products: Array<{ name: string; layer: string | null; distributor: string | null; tds_url?: string | null }>;
 }> => {
   if (!layers) return [];
 

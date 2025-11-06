@@ -112,7 +112,8 @@ const SystemStack = {
               id,
               name,
               layer,
-              distributor
+              distributor,
+              tds_url
             )
           )
         `
@@ -313,6 +314,7 @@ const SystemStack = {
           name: string | null;
           layer?: string | null;
           distributor?: string | null;
+          tds_url?: string | null;
         } | null;
       };
 
@@ -323,6 +325,7 @@ const SystemStack = {
           name: string;
           layer: string | null;
           distributor: string | null;
+          tds_url: string | null;
         }>;
       };
 
@@ -336,7 +339,8 @@ const SystemStack = {
           id,
           name,
           layer,
-          distributor
+          distributor,
+          tds_url
         )
       `
         )
@@ -400,11 +404,17 @@ const SystemStack = {
             ? product.distributor.trim() || null
             : null;
 
+        const tdsUrlValue =
+          product && typeof product.tds_url === "string"
+            ? product.tds_url.trim() || null
+            : null;
+
         combinationsMap.get(combinationNumber)?.products.push({
           id: productId,
           name: trimmedName,
           layer: layerValue,
           distributor: distributorValue,
+          tds_url: tdsUrlValue,
         });
       }
 
@@ -486,7 +496,8 @@ const SystemStack = {
                 id,
                 name,
                 layer,
-                distributor
+                distributor,
+                tds_url
               )
             )
           )
@@ -564,7 +575,8 @@ const SystemStack = {
                 id,
                 name,
                 layer,
-                distributor
+                distributor,
+                tds_url
               )
             )
           )
