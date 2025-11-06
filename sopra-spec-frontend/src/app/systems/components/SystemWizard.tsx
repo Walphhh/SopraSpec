@@ -11,7 +11,7 @@ const Building3D = dynamic<Building3DProps>(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[420px] items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#7C878E]">
+      <div className="flex h-[420px] items-center justify-center rounded-2xl bg-white text-[#7C878E] shadow-sm">
         Loading 3D building...
       </div>
     ),
@@ -40,14 +40,19 @@ const SUPPORTED_AREA_TYPES = new Set([
   "internal_wet_area",
 ]);
 
-const normaliseAreaType = (value: string): string =>
-  value.replace(/-/g, "_").toLowerCase();
+const normaliseAreaType = (value: string): string => {
+  const normalised = value
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/-/g, "_")
+    .toLowerCase();
+  if (normalised === "civil_works") return "civil_work";
+  if (normalised === "internalwetarea") return "internal_wet_area";
+  return normalised;
+};
 
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
-  const areaSelectionActive =
-    wizard.currentStep === "area_type" &&
-    typeof wizard.selections.distributor === "string";
+  const areaSelectionActive = wizard.currentStep === "area_type";
 
   const buildingAreaOptions =
     areaSelectionActive && wizard.options.length > 0
@@ -71,9 +76,9 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
           )
       : undefined;
 
-  const buildingAllowedAreas = buildingAreaOptions?.map(
-    (entry) => entry.normalised
-  );
+  const buildingAllowedAreas = buildingAreaOptions
+    ? Array.from(new Set(buildingAreaOptions.map((entry) => entry.normalised)))
+    : undefined;
   const areaSelectionMap = buildingAreaOptions
     ? new Map(buildingAreaOptions.map((entry) => [entry.normalised, entry.raw]))
     : undefined;
@@ -81,6 +86,19 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
   return (
     <div className="mt-6 space-y-6">
       <h3 className="text-xl font-semibold text-[#0072CE]">System Selection</h3>
+
+      <div className="flex flex-wrap gap-3 text-sm text-[#7C878E]">
+        {wizard.selections.area_type && (
+          <span className="rounded-full bg-[#E2E8F0] px-3 py-1 text-[#0072CE] font-medium">
+            Area: {formatDisplayText(wizard.selections.area_type)}
+          </span>
+        )}
+        {wizard.selections.distributor && (
+          <span className="rounded-full bg-[#E2E8F0] px-3 py-1 text-[#0072CE] font-medium">
+            Distributor: {formatDisplayText(wizard.selections.distributor)}
+          </span>
+        )}
+      </div>
 
       {wizard.error && (
         <div className="rounded border border-red-200 bg-red-50 p-3 text-red-700">
@@ -93,8 +111,8 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
       )}
 
       {wizard.currentStep && !wizard.finished && (
-        <div className="space-y-4">
-          <div className="flex items-center p-10 justify-between">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between rounded-xl bg-white p-8 shadow-sm">
             <div>
               <div className="text-sm text-[#7C878E]">
                 Current Step: {formatDisplayText(wizard.currentStep)}
@@ -113,22 +131,25 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
             </div>
           </div>
 
-          {areaSelectionActive &&
-          buildingAllowedAreas &&
-          buildingAllowedAreas.length > 0 ? (
-            <div className="mx-auto w-full max-w-6xl py-8 px-4">
-              <Building3D
-                distributor={String(wizard.selections.distributor)}
-                allowedAreas={buildingAllowedAreas}
-                onSelectArea={(areaType) => {
-                  const rawValue = areaSelectionMap?.get(areaType) ?? areaType;
-                  void wizard.setSelectionForActive(rawValue);
-                }}
-                width="100%"
-                height={700}
-              />
+          {areaSelectionActive && (
+            <div className="mx-auto w-full max-w-6xl">
+              <div className="mb-4 text-center text-[#7C878E]">
+                Click the building or use the cards to choose an area.
+              </div>
+              <div className="rounded-2xl bg-white py-8 px-4 shadow-sm">
+                <Building3D
+                  distributor={String(wizard.selections.distributor ?? "")}
+                  allowedAreas={buildingAllowedAreas}
+                  onSelectArea={(areaType) => {
+                    const rawValue = areaSelectionMap?.get(areaType) ?? areaType;
+                    void wizard.setSelectionForActive(rawValue);
+                  }}
+                  width="100%"
+                  height={640}
+                />
+              </div>
             </div>
-          ) : null}
+          )}
 
           <div
             className={`
@@ -159,6 +180,17 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
               />
             ))}
           </div>
+
+          {wizard.currentStep === "distributor" &&
+            wizard.selections.area_type && (
+              <div className="text-center text-[#7C878E]">
+                Selected area:&nbsp;
+                <span className="font-semibold text-[#0072CE]">
+                  {formatDisplayText(wizard.selections.area_type)}
+                </span>
+                . Choose a distributor to continue.
+              </div>
+            )}
 
           {(!wizard.options || wizard.options.length === 0) && (
             <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
@@ -400,3 +432,13 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+

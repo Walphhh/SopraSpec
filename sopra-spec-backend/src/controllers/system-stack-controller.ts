@@ -5,8 +5,8 @@ import { PDFGeneratorService } from '../services/pdf-gen-service';
 
 
 const ORDER = [
-  "distributor",
   "area_type",
+  "distributor",
   "roof_subtype",
   "foundation_subtype",
   "civil_work_subtype",
@@ -631,3 +631,4 @@ function applyEnumSafeFilters(
 }
 
 export default SystemStack;
+

@@ -15,7 +15,7 @@ import { Mesh, Vector3 } from "three";
 import { useRouter } from "next/navigation";
 
 export interface Building3DProps {
-  distributor: string;
+  distributor?: string;
   onSelectArea?: (areaType: string) => void;
   allowedAreas?: string[];
   width?: number | string;
@@ -47,6 +47,10 @@ const distributorLabels: Record<string, string[]> = {
   allduro: ["Roof", "Wall", "Foundation", "Civil", "InternalWetArea"],
   enduroflex: ["Roof", "Wall", "Foundation", "Civil", "InternalWetArea"],
 };
+
+const ALL_LABELS = Array.from(
+  new Set(Object.values(distributorLabels).flat())
+);
 
 const labelCache = new Map<string, LabelSnapshot[]>();
 const baseLabelPositions = new Map<string, [number, number, number]>();
@@ -193,17 +197,20 @@ const Model = memo(function Model({
   distributor,
   onLabelExtract,
 }: {
-  distributor: string;
+  distributor?: string;
   onLabelExtract: (labels: { name: string; position: Vector3 }[]) => void;
 }) {
   const gltf = useGLTF("/models/soprema-building.glb");
   const meshRefs = useRef<Record<string, Mesh>>({});
 
-  const distributorKey = useMemo(() => distributor.toLowerCase(), [distributor]);
-  const distributorLabelNames = useMemo(
-    () => distributorLabels[distributorKey] ?? [],
-    [distributorKey]
+  const distributorKey = useMemo(
+    () => (distributor ? distributor.toLowerCase() : "__all__"),
+    [distributor]
   );
+  const distributorLabelNames = useMemo(() => {
+    const labels = distributorLabels[distributorKey];
+    return labels && labels.length > 0 ? labels : ALL_LABELS;
+  }, [distributorKey]);
 
   useEffect(() => {
     let cached = labelCache.get(distributorKey);
@@ -296,7 +303,10 @@ export default function Building3D({
   height = "100vh",
 }: Building3DProps) {
   const router = useRouter();
-  const distributorKey = useMemo(() => distributor.toLowerCase(), [distributor]);
+  const distributorKey = useMemo(
+    () => (distributor ? distributor.toLowerCase() : "__all__"),
+    [distributor]
+  );
 
   const enabledAreaTypes = useMemo(() => {
     if (!allowedAreas || allowedAreas.length === 0) return null;
@@ -371,7 +381,7 @@ export default function Building3D({
         return;
       }
       const routeSegment = areaTypeToRouteSegment[areaType];
-      if (!routeSegment) return;
+      if (!routeSegment || distributorKey === "__all__") return;
       router.push(`/systems/${distributorKey}/${routeSegment}`);
     },
     [distributorKey, onSelectArea, router]

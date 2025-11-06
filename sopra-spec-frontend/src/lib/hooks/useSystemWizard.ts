@@ -79,7 +79,19 @@ export function useSystemWizard() {
   const setSelectionForActive = useCallback(
     async (value: any) => {
       if (!currentStep) return;
-      const newFilters = { ...filters, [currentStep]: value };
+      const stepIndex = ORDER.indexOf(
+        currentStep as (typeof ORDER)[number]
+      );
+      let baseFilters = filters;
+      if (stepIndex >= 0) {
+        baseFilters = Object.fromEntries(
+          Object.entries(filters).filter(([key]) => {
+            const idx = ORDER.indexOf(key as (typeof ORDER)[number]);
+            return idx === -1 || idx <= stepIndex;
+          })
+        );
+      }
+      const newFilters = { ...baseFilters, [currentStep]: value };
       setFilters(newFilters);
       setLoading(true);
       setError(null);
