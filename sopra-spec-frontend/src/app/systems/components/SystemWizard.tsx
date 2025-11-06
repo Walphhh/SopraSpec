@@ -1,9 +1,22 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import OptionCard from "@/components/OptionCard";
 import { useSystemWizard } from "@/lib/hooks/useSystemWizard";
-import { Divide } from "lucide-react";
 import Link from "next/link";
+import type { Building3DProps } from "../[distributor]/components/Building3D";
+
+const Building3D = dynamic<Building3DProps>(
+  () => import("../[distributor]/components/Building3D"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[420px] items-center justify-center rounded border border-[#E2E8F0] bg-white text-[#7C878E]">
+        Loading 3D building...
+      </div>
+    ),
+  }
+);
 
 const formatDisplayText = (value: unknown): string => {
   if (value === null || value === undefined) return "";
@@ -19,8 +32,51 @@ const formatDisplayText = (value: unknown): string => {
     .join(" ");
 };
 
+const SUPPORTED_AREA_TYPES = new Set([
+  "roof",
+  "wall",
+  "foundation",
+  "civil_work",
+  "internal_wet_area",
+]);
+
+const normaliseAreaType = (value: string): string =>
+  value.replace(/-/g, "_").toLowerCase();
+
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
+  const areaSelectionActive =
+    wizard.currentStep === "area_type" &&
+    typeof wizard.selections.distributor === "string";
+
+  const buildingAreaOptions =
+    areaSelectionActive && wizard.options.length > 0
+      ? wizard.options
+          .map((opt) => {
+            const raw =
+              typeof opt.value === "string"
+                ? opt.value
+                : typeof opt.value === "number"
+                ? String(opt.value)
+                : String(opt.value ?? "");
+            const normalised = normaliseAreaType(raw);
+            if (!raw || !SUPPORTED_AREA_TYPES.has(normalised)) {
+              return null;
+            }
+            return { raw, normalised };
+          })
+          .filter(
+            (entry): entry is { raw: string; normalised: string } =>
+              entry !== null
+          )
+      : undefined;
+
+  const buildingAllowedAreas = buildingAreaOptions?.map(
+    (entry) => entry.normalised
+  );
+  const areaSelectionMap = buildingAreaOptions
+    ? new Map(buildingAreaOptions.map((entry) => [entry.normalised, entry.raw]))
+    : undefined;
 
   return (
     <div className="mt-6 space-y-6">
@@ -57,13 +113,30 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
             </div>
           </div>
 
+          {areaSelectionActive &&
+          buildingAllowedAreas &&
+          buildingAllowedAreas.length > 0 ? (
+            <div className="mx-auto w-full max-w-6xl py-8 px-4">
+              <Building3D
+                distributor={String(wizard.selections.distributor)}
+                allowedAreas={buildingAllowedAreas}
+                onSelectArea={(areaType) => {
+                  const rawValue = areaSelectionMap?.get(areaType) ?? areaType;
+                  void wizard.setSelectionForActive(rawValue);
+                }}
+                width="100%"
+                height={700}
+              />
+            </div>
+          ) : null}
+
           <div
             className={`
-    grid gap-4 justify-center place-items-center
-    ${wizard.options.length === 1 ? "grid-cols-1" : ""}
-    ${wizard.options.length === 2 ? "grid-cols-2" : ""}
-    ${wizard.options.length >= 3 ? "grid-cols-3" : ""}
-  `}
+      grid gap-4 justify-center place-items-center
+      ${wizard.options.length === 1 ? "grid-cols-1" : ""}
+      ${wizard.options.length === 2 ? "grid-cols-2" : ""}
+      ${wizard.options.length >= 3 ? "grid-cols-3" : ""}
+    `}
           >
             {wizard.options?.map((opt, idx) => (
               <OptionCard

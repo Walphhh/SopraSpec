@@ -14,8 +14,8 @@ import { useAuth } from "@/utils/auth-provider";
 
 // Ordered fields for breadcrumb display
 const ORDER = [
-  "distributor",
   "area_type",
+  "distributor",
   "roof_subtype",
   "foundation_subtype",
   "civil_work_subtype",
@@ -248,3 +248,5 @@ export function useSystemWizard() {
     loadDetails,
   } as const;
 }
+
+

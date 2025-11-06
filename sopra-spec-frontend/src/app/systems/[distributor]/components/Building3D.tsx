@@ -1,18 +1,46 @@
 "use client";
 
-import { useEffect, useRef, useState, Suspense, useMemo, memo, useCallback } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Html, useGLTF, OrbitControls, Line } from "@react-three/drei";
+import {
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { Html, Line, OrbitControls, useGLTF } from "@react-three/drei";
 import { Mesh, Vector3 } from "three";
 import { useRouter } from "next/navigation";
 
-interface Building3DProps {
+export interface Building3DProps {
   distributor: string;
+  onSelectArea?: (areaType: string) => void;
+  allowedAreas?: string[];
+  width?: number | string;
+  height?: number | string;
 }
 
 useGLTF.preload("/models/soprema-building.glb");
 
 type LabelSnapshot = { name: string; position: [number, number, number] };
+
+const meshNameToAreaType: Record<string, string> = {
+  Roof: "roof",
+  Wall: "wall",
+  Foundation: "foundation",
+  Civil: "civil_work",
+  InternalWetArea: "internal_wet_area",
+};
+
+const areaTypeToRouteSegment: Record<string, string> = {
+  roof: "roof",
+  wall: "wall",
+  foundation: "foundation",
+  civil_work: "civil-works",
+  internal_wet_area: "internal-wet-areas",
+};
 
 const distributorLabels: Record<string, string[]> = {
   bayset: ["Roof", "Wall", "Foundation", "Civil"],
@@ -22,6 +50,7 @@ const distributorLabels: Record<string, string[]> = {
 
 const labelCache = new Map<string, LabelSnapshot[]>();
 const baseLabelPositions = new Map<string, [number, number, number]>();
+
 const labelOffsets: Record<string, Vector3> = {
   roof: new Vector3(-1.05, 0.05, 0),
   wall: new Vector3(-0.65, 0.0, 0),
@@ -35,13 +64,130 @@ const rightLineOffset = new Vector3(2.5, 0, 0);
 const leftLabelShift = new Vector3(-0.05, 0, 0);
 const rightLabelShift = new Vector3(0.05, 0, 0);
 
-const displayNameMap: Record<string, string> = {
+const displayNameByAreaType: Record<string, string> = {
   roof: "Roof",
   wall: "Wall",
-  internalwetarea: "Internal Wet Areas",
   foundation: "Foundation",
-  civil: "Civil Works",
+  civil_work: "Civil Works",
+  internal_wet_area: "Internal Wet Areas",
 };
+
+function LabelAnnotations({
+  labels,
+  hoveredLabel,
+  setHoveredLabel,
+  onSelectArea,
+  enabledAreas,
+}: {
+  labels: { name: string; position: Vector3 }[];
+  hoveredLabel: string | null;
+  setHoveredLabel: (label: string | null) => void;
+  onSelectArea: (meshName: string) => void;
+  enabledAreas: Set<string> | null;
+}) {
+  const invalidate = useThree((state) => state.invalidate);
+
+  useEffect(() => {
+    invalidate();
+  }, [invalidate, labels, enabledAreas]);
+
+  return (
+    <>
+      {labels.map((label) => {
+        const areaType = meshNameToAreaType[label.name] ?? "";
+        const nameKey = label.name.toLowerCase();
+        const isLeft =
+          nameKey.includes("roof") ||
+          nameKey.includes("wall") ||
+          nameKey.includes("civil");
+
+        const offset = labelOffsets[nameKey] ?? defaultOffset;
+        const startPos = label.position.clone().add(offset);
+        const lineEnd = startPos.clone().add(
+          isLeft ? leftLineOffset : rightLineOffset
+        );
+
+        const displayName =
+          displayNameByAreaType[areaType] ??
+          label.name.replace(/([A-Z])/g, " $1").trim();
+
+        const isEnabled = !enabledAreas || enabledAreas.has(areaType);
+        const lineColor = isEnabled
+          ? hoveredLabel === nameKey
+            ? "#007bff"
+            : "#6E7A86"
+          : "#CBD5E1";
+        const dotColor = isEnabled
+          ? hoveredLabel === nameKey
+            ? "#007bff"
+            : "#6E7A86"
+          : "#CBD5E1";
+
+        return (
+          <group
+            key={label.name}
+            onPointerOver={() => {
+              if (isEnabled) setHoveredLabel(nameKey);
+            }}
+            onPointerOut={() => {
+              if (isEnabled) setHoveredLabel(null);
+            }}
+          >
+            <Line
+              points={[startPos, lineEnd]}
+              color={lineColor}
+              lineWidth={4}
+            />
+
+            <mesh position={startPos}>
+              <sphereGeometry args={[0.05, 16, 16]} />
+              <meshStandardMaterial
+                color={dotColor}
+              />
+            </mesh>
+
+            <Html
+              position={lineEnd.clone().add(isLeft ? leftLabelShift : rightLabelShift)}
+              style={{
+                pointerEvents: isEnabled ? "auto" : "none",
+                whiteSpace: "nowrap",
+                transform: isLeft ? "translateX(-70%)" : "translateX(-50%)",
+              }}
+            >
+              <div
+                onPointerEnter={() => {
+                  if (isEnabled) setHoveredLabel(nameKey);
+                }}
+                onPointerLeave={() => {
+                  if (isEnabled) setHoveredLabel(null);
+                }}
+                onClick={() => {
+                  if (isEnabled) onSelectArea(label.name);
+                }}
+                style={{
+                  cursor: isEnabled ? "pointer" : "default",
+                  color: isEnabled
+                    ? hoveredLabel === nameKey
+                      ? "#007bff"
+                      : "#6E7A86"
+                    : "#CBD5E1",
+                  fontSize: "25px",
+                  fontWeight: 600,
+                  background: "none",
+                  padding: 0,
+                  margin: 0,
+                  textAlign: isLeft ? "right" : "left",
+                }}
+              >
+                {displayName}
+              </div>
+            </Html>
+          </group>
+        );
+      })}
+    </>
+  );
+}
 
 const Model = memo(function Model({
   distributor,
@@ -51,15 +197,16 @@ const Model = memo(function Model({
   onLabelExtract: (labels: { name: string; position: Vector3 }[]) => void;
 }) {
   const gltf = useGLTF("/models/soprema-building.glb");
-  const meshRefs = useRef<{ [name: string]: Mesh }>({});
-  const extractedLabels: { name: string; position: Vector3 }[] = [];
-  const allowedLabels = useMemo(
-    () => distributorLabels[distributor] || [],
-    [distributor]
+  const meshRefs = useRef<Record<string, Mesh>>({});
+
+  const distributorKey = useMemo(() => distributor.toLowerCase(), [distributor]);
+  const distributorLabelNames = useMemo(
+    () => distributorLabels[distributorKey] ?? [],
+    [distributorKey]
   );
 
   useEffect(() => {
-    let cached = labelCache.get(distributor);
+    let cached = labelCache.get(distributorKey);
 
     const ensureBasePositions = () => {
       if (baseLabelPositions.size > 0) return;
@@ -76,7 +223,7 @@ const Model = memo(function Model({
     };
 
     const ensureShadows = () => {
-      for (const label of allowedLabels) {
+      for (const label of distributorLabelNames) {
         const child = gltf.scene.getObjectByName(label) as Mesh | null;
         if (!child || !child.isMesh) continue;
         child.castShadow = true;
@@ -88,7 +235,7 @@ const Model = memo(function Model({
     if (!cached) {
       ensureBasePositions();
       const snapshot: LabelSnapshot[] = [];
-      for (const label of allowedLabels) {
+      for (const label of distributorLabelNames) {
         const stored = baseLabelPositions.get(label);
         if (stored) {
           snapshot.push({ name: label, position: stored });
@@ -102,10 +249,9 @@ const Model = memo(function Model({
           snapshot.push({ name: label, position: array });
         }
       }
-      labelCache.set(distributor, snapshot);
+      labelCache.set(distributorKey, snapshot);
       cached = snapshot;
 
-      // Prime cache for other distributors using the shared base positions
       for (const [otherKey, labelsForKey] of Object.entries(distributorLabels)) {
         if (labelCache.has(otherKey)) continue;
         const otherSnapshot: LabelSnapshot[] = [];
@@ -123,33 +269,58 @@ const Model = memo(function Model({
 
     if (cached) {
       onLabelExtract(
-        cached.map((entry) => ({
+        cached.map(
+          (entry) =>
+            ({
+              name: entry.name,
+              position: new Vector3(
+                entry.position[0],
+                entry.position[1],
+                entry.position[2]
+              ),
+            }) satisfies { name: string; position: Vector3 }
+        )
+      );
+    }
+  }, [distributorKey, distributorLabelNames, gltf.scene, onLabelExtract]);
+
+  return <primitive object={gltf.scene} rotation={[0, Math.PI / 2, 0]} />;
+});
+Model.displayName = "Building3DModel";
+
+export default function Building3D({
+  distributor,
+  onSelectArea,
+  allowedAreas,
+  width = "100vw",
+  height = "100vh",
+}: Building3DProps) {
+  const router = useRouter();
+  const distributorKey = useMemo(() => distributor.toLowerCase(), [distributor]);
+
+  const enabledAreaTypes = useMemo(() => {
+    if (!allowedAreas || allowedAreas.length === 0) return null;
+    return new Set(allowedAreas.map((area) => area.toLowerCase()));
+  }, [allowedAreas]);
+
+  const initialLabels = useMemo(() => {
+    const cached = labelCache.get(distributorKey);
+    if (!cached) return [];
+    return cached.map(
+      (entry) =>
+        ({
           name: entry.name,
           position: new Vector3(
             entry.position[0],
             entry.position[1],
             entry.position[2]
           ),
-        }))
-      );
-    }
-  }, [allowedLabels, distributor, gltf.scene, onLabelExtract]);
+        }) satisfies { name: string; position: Vector3 }
+    );
+  }, [distributorKey]);
 
-  return <primitive object={gltf.scene} rotation={[0, Math.PI / 2, 0]} />;
-});
-Model.displayName = "Building3DModel";
-
-export default function Building3D({ distributor }: Building3DProps) {
-  const [labels, setLabels] = useState<{ name: string; position: Vector3 }[]>(() => {
-    const cached = labelCache.get(distributor);
-    if (!cached) return [];
-    return cached.map((entry) => ({
-      name: entry.name,
-      position: new Vector3(entry.position[0], entry.position[1], entry.position[2]),
-    }));
-  });
+  const [labels, setLabels] = useState(initialLabels);
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
-  const router = useRouter();
 
   const applyLabels = useCallback(
     (incoming: { name: string; position: Vector3 }[]) => {
@@ -173,25 +344,51 @@ export default function Building3D({ distributor }: Building3DProps) {
     []
   );
 
-  const handleSelect = (meshName: string) => {
-    const keyMap: Record<string, string> = {
-      Roof: "roof",
-      Wall: "wall",
-      InternalWetArea: "internal-wet-areas",
-      Foundation: "foundation",
-      Civil: "civil-works",
-    };
+  useEffect(() => {
+    const cached = labelCache.get(distributorKey);
+    if (!cached) return;
+    applyLabels(
+      cached.map(
+        (entry) =>
+          ({
+            name: entry.name,
+            position: new Vector3(
+              entry.position[0],
+              entry.position[1],
+              entry.position[2]
+            ),
+          }) satisfies { name: string; position: Vector3 }
+      )
+    );
+  }, [applyLabels, distributorKey]);
 
-    const areaKey = keyMap[meshName];
-    if (!areaKey) return;
-    router.push(`/systems/${distributor}/${areaKey}`);
-  };
+  const handleSelect = useCallback(
+    (meshName: string) => {
+      const areaType = meshNameToAreaType[meshName];
+      if (!areaType) return;
+      if (onSelectArea) {
+        onSelectArea(areaType);
+        return;
+      }
+      const routeSegment = areaTypeToRouteSegment[areaType];
+      if (!routeSegment) return;
+      router.push(`/systems/${distributorKey}/${routeSegment}`);
+    },
+    [distributorKey, onSelectArea, router]
+  );
+
+  const containerStyle = useMemo(() => {
+    const resolvedWidth =
+      typeof width === "number" ? `${width}px` : width ?? "100vw";
+    const resolvedHeight =
+      typeof height === "number" ? `${height}px` : height ?? "100vh";
+    return { width: resolvedWidth, height: resolvedHeight };
+  }, [height, width]);
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div style={containerStyle}>
       <Canvas
         shadows
-        frameloop="demand"
         dpr={[1, 1.5]}
         camera={{ position: [10, 10, 15], fov: 15 }}
       >
@@ -201,12 +398,11 @@ export default function Building3D({ distributor }: Building3DProps) {
         <OrbitControls
           enableZoom={false}
           enablePan={false}
-          enableRotate={true}
+          enableRotate
           minPolarAngle={Math.PI / 3}
           maxPolarAngle={Math.PI / 3}
         />
 
-        {/* Load GLB model once */}
         <Suspense
           fallback={
             <Html center>
@@ -219,72 +415,14 @@ export default function Building3D({ distributor }: Building3DProps) {
           <Model distributor={distributor} onLabelExtract={applyLabels} />
         </Suspense>
 
-        {/* Labels */}
-        {labels.map((label) => {
-          const nameKey = label.name.toLowerCase();
-          const isLeft =
-            nameKey.includes("roof") ||
-            nameKey.includes("wall") ||
-            nameKey.includes("civil");
-
-          const offset = labelOffsets[nameKey] || defaultOffset;
-          const startPos = label.position.clone().add(offset);
-          const lineEnd = startPos.clone().add(isLeft ? leftLineOffset : rightLineOffset);
-
-          const displayName = displayNameMap[nameKey] || label.name;
-
-          return (
-            <group
-              key={label.name}
-              onPointerOver={() => setHoveredLabel(nameKey)}
-              onPointerOut={() => setHoveredLabel(null)}
-            >
-              {/* Line */}
-              <Line
-                points={[startPos, lineEnd]}
-                color={hoveredLabel === nameKey ? "#007bff" : "#6E7A86"}
-                lineWidth={4}
-              />
-
-              {/* Dot */}
-              <mesh position={startPos}>
-                <sphereGeometry args={[0.05, 16, 16]} />
-                <meshStandardMaterial
-                  color={hoveredLabel === nameKey ? "#007bff" : "#6E7A86"}
-                />
-              </mesh>
-
-              {/* Clickable label */}
-              <Html
-                position={lineEnd.clone().add(isLeft ? leftLabelShift : rightLabelShift)}
-                style={{
-                  pointerEvents: "auto",
-                  whiteSpace: "nowrap",
-                  transform: isLeft ? "translateX(-70%)" : "translateX(-50%)",
-                }}
-              >
-                <div
-                  onPointerEnter={() => setHoveredLabel(nameKey)}
-                  onPointerLeave={() => setHoveredLabel(null)}
-                  onClick={() => handleSelect(label.name)}
-                  style={{
-                    cursor: "pointer",
-                    color: hoveredLabel === nameKey ? "#007bff" : "#6E7A86",
-                    fontSize: "25px",
-                    fontWeight: 600,
-                    background: "none",
-                    padding: 0,
-                    margin: 0,
-                    textAlign: isLeft ? "right" : "left",
-                  }}
-                >
-                  {displayName}
-                </div>
-              </Html>
-            </group>
-          );
-        })}
-      </Canvas>
-    </div>
-  );
+        <LabelAnnotations
+          labels={labels}
+          hoveredLabel={hoveredLabel}
+          setHoveredLabel={setHoveredLabel}
+          onSelectArea={handleSelect}
+          enabledAreas={enabledAreaTypes}
+        />
+     </Canvas>
+   </div>
+ );
 }
