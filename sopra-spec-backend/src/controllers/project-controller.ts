@@ -9,22 +9,52 @@ const ProjectController = {
    */
   createProject: async (req: Request, res: Response) => {
     try {
-      const { ownerId, ...projectData } = req.body;
+      const { ownerId, name, ...projectData } = req.body;
+
+      if (!ownerId) {
+        return res.status(400).json({ error: "Missing ownerId" });
+      }
+
+      // 🧩 Auto-generate name if empty or duplicate
+      let projectName = name?.trim();
+
+      if (!projectName) {
+        const { data: existing, error: fetchError } = await supabase
+          .from("projects")
+          .select("name")
+          .ilike("name", "New Project%");
+
+        if (fetchError) {
+          console.error(fetchError);
+          return res.status(400).json({ error: fetchError.message });
+        }
+
+        const existingNames = existing.map((p) => p.name);
+        let counter = 0;
+
+        for (const n of existingNames) {
+          const match = n.match(/^New Project\s*(\d+)?$/i);
+          if (match) {
+            const num = match[1] ? parseInt(match[1], 10) : 0;
+            if (num >= counter) counter = num + 1;
+          }
+        }
+
+        projectName = counter === 0 ? "New Project" : `New Project ${counter}`;
+      }
 
       const { data, error } = await supabase
         .from("projects")
-        .insert([{ owner_id: ownerId, ...projectData }])
+        .insert([{ owner_id: ownerId, name: projectName, ...projectData }])
         .select()
         .single();
 
-      if (error)
-        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+      if (error) return res.status(400).json({ error: error.message });
 
-      return res.status(Status.SUCCESS).json({ project: data });
-    } catch {
-      return res
-        .status(Status.INTERNAL_SERVER_ERROR)
-        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+      return res.status(200).json({ project: data });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
   },
 

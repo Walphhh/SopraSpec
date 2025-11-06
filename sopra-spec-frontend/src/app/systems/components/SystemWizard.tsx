@@ -5,6 +5,20 @@ import { useSystemWizard } from "@/lib/hooks/useSystemWizard";
 import { Divide } from "lucide-react";
 import Link from "next/link";
 
+const formatDisplayText = (value: unknown): string => {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  const stringValue = String(value);
+  if (!stringValue) return "";
+
+  const normalised = stringValue.replace(/[_\s]+/g, " ").trim();
+  return normalised
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
 
@@ -27,10 +41,10 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
           <div className="flex items-center p-10 justify-between">
             <div>
               <div className="text-sm text-[#7C878E]">
-                Current Step: {wizard.currentStep}
+                Current Step: {formatDisplayText(wizard.currentStep)}
               </div>
               <div className="text-lg text-[#1E293B] font-medium">
-                Select {wizard.currentStep.replace(/_/g, " ")}
+                Select {formatDisplayText(wizard.currentStep)}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -54,7 +68,11 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
             {wizard.options?.map((opt, idx) => (
               <OptionCard
                 key={`${wizard.currentStep}-${idx}`}
-                title={String(opt.label ?? opt.value)}
+                title={
+                  typeof opt.label === "string" && opt.label.trim().length > 0
+                    ? opt.label
+                    : formatDisplayText(opt.label ?? opt.value)
+                }
                 textOnly
                 width={320}
                 onClick={() => wizard.setSelectionForActive(opt.value)}
@@ -160,11 +178,15 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         <div className="text-sm font-semibold text-[#1E293B]">
                           Combination {combo.combination}
                         </div>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#475569]">
+                        <ul className="mt-2 space-y-1 pl-5 text-sm text-[#475569] list-none">
                           {combo.products.map((product, idx) => {
-                            const label = product.layer
-                              ? `${product.layer}: ${product.name}`
-                              : product.name;
+                            const layerLabel = product.layer
+                              ? formatDisplayText(product.layer)
+                              : "";
+                            const nameLabel = formatDisplayText(product.name);
+                            const label = layerLabel
+                              ? `${layerLabel}: ${nameLabel}`
+                              : nameLabel;
                             return (
                               <li
                                 key={
@@ -274,9 +296,13 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         </div>
                         <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-[#475569]">
                           {combo.products.map((product, idx) => {
-                            const label = product.layer
-                              ? `${product.layer}: ${product.name}`
-                              : product.name;
+                            const layerLabel = product.layer
+                              ? formatDisplayText(product.layer)
+                              : "";
+                            const nameLabel = formatDisplayText(product.name);
+                            const label = layerLabel
+                              ? `${layerLabel}: ${nameLabel}`
+                              : nameLabel;
                             return (
                               <li
                                 key={

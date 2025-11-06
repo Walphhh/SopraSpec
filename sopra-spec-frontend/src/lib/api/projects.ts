@@ -2,13 +2,17 @@
 import { getBackendUrl } from "@/utils/get-backend-url";
 import type {
   AreaType,
-  NewProject,
   Project,
   ProjectArea,
   ProjectDetail,
   Specification,
   SpecificationStatus,
 } from "@/utils/types";
+
+export type CreateProjectPayload = {
+  ownerId: string;
+  name?: string;
+};
 
 const SPEC_STATUSES: SpecificationStatus[] = ["Draft", "Final", "Archived"];
 
@@ -115,22 +119,32 @@ export async function fetchProjectById(
   id: string
 ): Promise<ProjectDetail | null> {
   const url = getBackendUrl(`/projects/${id}`);
-  const { data } = await axios.get(url);
-  const row = data?.project;
-  if (!row || typeof row !== "object") {
-    return null;
-  }
-  const project = mapProject(row as Record<string, unknown>);
+  try {
+    const { data } = await axios.get(url);
+    const row = data?.project;
+    if (!row || typeof row !== "object") {
+      return null;
+    }
+    const project = mapProject(row as Record<string, unknown>);
 
-  const rawAreas = (row as Record<string, unknown>).project_areas;
-  const areasRows: unknown[] = Array.isArray(rawAreas) ? rawAreas : [];
-  const areas = areasRows
-    .filter(
-      (area): area is Record<string, unknown> =>
-        Boolean(area) && typeof area === "object"
-    )
-    .map(mapProjectArea);
-  return { ...project, areas } satisfies ProjectDetail;
+    const rawAreas = (row as Record<string, unknown>).project_areas;
+    const areasRows: unknown[] = Array.isArray(rawAreas) ? rawAreas : [];
+    const areas = areasRows
+      .filter(
+        (area): area is Record<string, unknown> =>
+          Boolean(area) && typeof area === "object"
+      )
+      .map(mapProjectArea);
+    return { ...project, areas } satisfies ProjectDetail;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      const status = error.response.status;
+      if (status === 400 || status === 404) {
+        return null;
+      }
+    }
+    throw error;
+  }
 }
 
 export async function fetchProjectAreas(
@@ -148,7 +162,7 @@ export async function fetchProjectAreas(
 }
 
 export async function createProject(
-  payload: NewProject & { ownerId: string }
+  payload: CreateProjectPayload
 ): Promise<Project> {
   const url = getBackendUrl(`/projects`);
   const { data } = await axios.post(url, payload);
