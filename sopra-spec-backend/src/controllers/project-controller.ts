@@ -243,6 +243,53 @@ const ProjectController = {
     }
   },
 
+  /**
+   * Delete a specific project area
+   */
+  deleteProjectArea: async (req: Request, res: Response) => {
+    try {
+      const { projectAreaId } = req.params;
+
+      if (!projectAreaId) {
+        return res
+          .status(Status.BAD_REQUEST)
+          .json({ error: "Missing projectAreaId" });
+      }
+
+      // Check if the area exists first
+      const { data: existing, error: fetchError } = await supabase
+        .from("project_areas")
+        .select("id, name")
+        .eq("id", projectAreaId)
+        .single();
+
+      if (fetchError || !existing) {
+        return res
+          .status(Status.NOT_FOUND)
+          .json({ error: "Project area not found" });
+      }
+
+      // Perform delete
+      const { error } = await supabase
+        .from("project_areas")
+        .delete()
+        .eq("id", projectAreaId);
+
+      if (error) {
+        return res.status(Status.BAD_REQUEST).json({ error: error.message });
+      }
+
+      return res.status(Status.SUCCESS).json({
+        message: `Project area '${existing.name}' deleted successfully`,
+      });
+    } catch (err) {
+      console.error("Error deleting project area:", err);
+      return res
+        .status(Status.INTERNAL_SERVER_ERROR)
+        .json({ error: getStatusMessage(Status.INTERNAL_SERVER_ERROR) });
+    }
+  },
+
   updateProject: async (req: Request, res: Response) => {
     try {
       const { id } = req.params; // project id from URL

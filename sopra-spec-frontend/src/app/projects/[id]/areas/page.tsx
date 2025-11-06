@@ -3,6 +3,10 @@ import { Filter, PlusSquare } from "lucide-react";
 
 import { fetchProjectById } from "@/lib/api/projects";
 import type { ProjectArea, AreaType } from "@/utils/types";
+import axios from "axios";
+import DownloadFullSpecButton from "./[areaId]/components/DownloadFullSpecButton";
+import DownloadAreaSpecButton from "./[areaId]/components/DownloadAreaSpecButton";
+import DeleteAreaButton from "./[areaId]/components/DeleteAreaButton";
 
 const areaTypeLabel: Record<AreaType, string> = {
   roof: "Roof",
@@ -26,7 +30,7 @@ const formatWarrantyCell = (area: ProjectArea) => {
 
 const formatSpecificationCell = (area: ProjectArea) => {
   const specs = area.specifications ?? [];
-  if (specs.length === 0) return { view: false, download: false };
+  if (specs.length === 0) return { view: false, download: true };
   const actions = specs[0].actions ?? {};
   return {
     view: Boolean(actions?.view),
@@ -48,9 +52,16 @@ export default async function AreasPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 text-[#0072CE]">
-        <Filter size={20} />
-        <h3 className="text-xl font-semibold">All Areas</h3>
+      <div className="flex justify-between">
+        <div className="flex items-center gap-3 text-[#0072CE]">
+          <Filter size={20} />
+          <h3 className="text-xl font-semibold">All Areas</h3>
+        </div>
+
+        {/* download button */}
+        <div className="flex justify-end">
+          <DownloadFullSpecButton projectId={id} />
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-[#B3C7D6] bg-white">
@@ -63,6 +74,7 @@ export default async function AreasPage({
               <th className="px-6 py-4">Warranty</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Specification</th>
+              <th className="px-6 py-4 ">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E2E8F0] text-[#1E293B]">
@@ -98,16 +110,22 @@ export default async function AreasPage({
                         View
                       </span>
                       <span className="text-[#B3C7D6]">|</span>
-                      <span
-                        className={
-                          specActions.download
-                            ? "hover:underline"
-                            : "opacity-50"
-                        }
-                      >
-                        Download
-                      </span>
+                      {specActions.download ? (
+                        <DownloadAreaSpecButton
+                          projectId={project.id}
+                          projectAreaId={area.id}
+                        />
+                      ) : (
+                        <span className="opacity-50">Download</span>
+                      )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <DeleteAreaButton
+                      projectId={project.id}
+                      projectAreaId={area.id}
+                      areaName={area.name}
+                    />
                   </td>
                 </tr>
               );

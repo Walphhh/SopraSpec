@@ -13,5 +13,9 @@ router.patch("/:id", ProjectController.updateProject);
 // Project Areas
 router.post("/:projectId/areas", ProjectController.addProjectArea);
 router.get("/:projectId/areas", ProjectController.getProjectAreas);
+router.delete(
+  "/:projectId/areas/:projectAreaId",
+  ProjectController.deleteProjectArea
+);
 
 export default router;
