@@ -169,8 +169,8 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
           </div>
 
           {areaSelectionActive && (
-            <div className="mx-auto w-full max-w-6xl">
-              <div className="rounded-2xl bg-white py-8 px-4 ">
+            <div className="w-full space-y-6">
+              <div className="py-8">
                 <Building3D
                   distributor={String(wizard.selections.distributor ?? "")}
                   allowedAreas={buildingAllowedAreas}
@@ -180,7 +180,7 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                     void wizard.setSelectionForActive(rawValue);
                   }}
                   width="100%"
-                  height={700}
+                  height={770}
                 />
               </div>
             </div>
@@ -346,7 +346,7 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                             href={`/projects/${projectId}/areas/new?stackId=${rec.id}&combination=${combo.combination}&areaType=${wizard.selections.area_type}`}
                           >
                             <button
-                              className={`bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90`}
+                              className={`bg-blue-300 p-3 rounded-xl text-black hover:cursor-pointer hover:opacity-85`}
                               onClick={() => {
                                 console.log(combo.products);
                               }}
