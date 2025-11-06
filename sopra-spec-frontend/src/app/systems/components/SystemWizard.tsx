@@ -8,14 +8,7 @@ import type { Building3DProps } from "../[distributor]/components/Building3D";
 
 const Building3D = dynamic<Building3DProps>(
   () => import("../[distributor]/components/Building3D"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[420px] items-center justify-center rounded-2xl bg-white text-[#7C878E] shadow-sm">
-        Loading 3D building...
-      </div>
-    ),
-  }
+  { ssr: false, loading: () => null }
 );
 
 const formatDisplayText = (value: unknown): string => {
@@ -50,6 +43,19 @@ const normaliseAreaType = (value: string): string => {
   return normalised;
 };
 
+const FIELD_LABELS: Record<string, string> = {
+  area_type: "Area",
+  distributor: "Distributor",
+  roof_subtype: "Roof subtype",
+  foundation_subtype: "Foundation subtype",
+  civil_work_subtype: "Civil work subtype",
+  substrate: "Substrate",
+  material: "Material",
+  insulated: "Insulated",
+  exposure: "Exposure",
+  attachment: "Attachment",
+};
+
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
   const areaSelectionActive = wizard.currentStep === "area_type";
@@ -82,23 +88,54 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
   const areaSelectionMap = buildingAreaOptions
     ? new Map(buildingAreaOptions.map((entry) => [entry.normalised, entry.raw]))
     : undefined;
+  const selectionChips = wizard.orderedKeys
+    .map((key) => {
+      const rawValue = wizard.selections[key as keyof typeof wizard.selections];
+      if (
+        rawValue === undefined ||
+        rawValue === null ||
+        (typeof rawValue === "string" && rawValue.trim().length === 0)
+      ) {
+        return null;
+      }
+      return {
+        key,
+        label: FIELD_LABELS[key] ?? formatDisplayText(key),
+        value: formatDisplayText(rawValue),
+        isCurrent: key === wizard.currentStep,
+      };
+    })
+    .filter(
+      (
+        chip
+      ): chip is {
+        key: string;
+        label: string;
+        value: string;
+        isCurrent: boolean;
+      } => Boolean(chip)
+    );
 
   return (
     <div className="mt-6 space-y-6">
       <h3 className="text-xl font-semibold text-[#0072CE]">System Selection</h3>
 
-      <div className="flex flex-wrap gap-3 text-sm text-[#7C878E]">
-        {wizard.selections.area_type && (
-          <span className="rounded-full bg-[#E2E8F0] px-3 py-1 text-[#0072CE] font-medium">
-            Area: {formatDisplayText(wizard.selections.area_type)}
-          </span>
-        )}
-        {wizard.selections.distributor && (
-          <span className="rounded-full bg-[#E2E8F0] px-3 py-1 text-[#0072CE] font-medium">
-            Distributor: {formatDisplayText(wizard.selections.distributor)}
-          </span>
-        )}
-      </div>
+      {selectionChips.length > 0 && (
+        <div className="flex flex-wrap gap-3 text-sm text-[#7C878E]">
+          {selectionChips.map((chip) => (
+            <span
+              key={chip.key}
+              className={`rounded-full px-3 py-1 font-medium ${
+                chip.isCurrent
+                  ? "bg-[#0072CE] text-white"
+                  : "bg-[#E2E8F0] text-[#0072CE]"
+              }`}
+            >
+              {chip.label}: {chip.value}
+            </span>
+          ))}
+        </div>
+      )}
 
       {wizard.error && (
         <div className="rounded border border-red-200 bg-red-50 p-3 text-red-700">
@@ -112,7 +149,7 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
 
       {wizard.currentStep && !wizard.finished && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between rounded-xl bg-white p-8 shadow-sm">
+          <div className="flex items-center justify-between rounded-xl bg-white p-8 ">
             <div>
               <div className="text-sm text-[#7C878E]">
                 Current Step: {formatDisplayText(wizard.currentStep)}
@@ -133,53 +170,53 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
 
           {areaSelectionActive && (
             <div className="mx-auto w-full max-w-6xl">
-              <div className="mb-4 text-center text-[#7C878E]">
-                Click the building or use the cards to choose an area.
-              </div>
-              <div className="rounded-2xl bg-white py-8 px-4 shadow-sm">
+              <div className="rounded-2xl bg-white py-8 px-4 ">
                 <Building3D
                   distributor={String(wizard.selections.distributor ?? "")}
                   allowedAreas={buildingAllowedAreas}
                   onSelectArea={(areaType) => {
-                    const rawValue = areaSelectionMap?.get(areaType) ?? areaType;
+                    const rawValue =
+                      areaSelectionMap?.get(areaType) ?? areaType;
                     void wizard.setSelectionForActive(rawValue);
                   }}
                   width="100%"
-                  height={640}
+                  height={700}
                 />
               </div>
             </div>
           )}
 
-          <div
-            className={`
+          {!areaSelectionActive && (
+            <div
+              className={`
       grid gap-4 justify-center place-items-center
       ${wizard.options.length === 1 ? "grid-cols-1" : ""}
       ${wizard.options.length === 2 ? "grid-cols-2" : ""}
       ${wizard.options.length >= 3 ? "grid-cols-3" : ""}
     `}
-          >
-            {wizard.options?.map((opt, idx) => (
-              <OptionCard
-                key={`${wizard.currentStep}-${idx}`}
-                title={
-                  typeof opt.label === "string" && opt.label.trim().length > 0
-                    ? opt.label
-                    : formatDisplayText(opt.label ?? opt.value)
-                }
-                textOnly
-                width={320}
-                onClick={() => wizard.setSelectionForActive(opt.value)}
-                selected={
-                  String(
-                    wizard.selections[
-                      wizard.currentStep as keyof typeof wizard.selections
-                    ]
-                  ) === String(opt.value)
-                }
-              />
-            ))}
-          </div>
+            >
+              {wizard.options?.map((opt, idx) => (
+                <OptionCard
+                  key={`${wizard.currentStep}-${idx}`}
+                  title={
+                    typeof opt.label === "string" && opt.label.trim().length > 0
+                      ? opt.label
+                      : formatDisplayText(opt.label ?? opt.value)
+                  }
+                  textOnly
+                  width={320}
+                  onClick={() => wizard.setSelectionForActive(opt.value)}
+                  selected={
+                    String(
+                      wizard.selections[
+                        wizard.currentStep as keyof typeof wizard.selections
+                      ]
+                    ) === String(opt.value)
+                  }
+                />
+              ))}
+            </div>
+          )}
 
           {wizard.currentStep === "distributor" &&
             wizard.selections.area_type && (
@@ -432,13 +469,3 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
