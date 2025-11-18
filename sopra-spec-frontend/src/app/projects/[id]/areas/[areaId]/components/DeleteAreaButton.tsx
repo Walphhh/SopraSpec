@@ -4,6 +4,7 @@ import axios from "axios";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getBackendUrl } from "@/utils/get-backend-url";
 
 export default function DeleteAreaButton({
   projectId,
@@ -26,7 +27,7 @@ export default function DeleteAreaButton({
     try {
       setLoading(true);
       await axios.delete(
-        `http://localhost:5000/api/projects/${projectId}/areas/${projectAreaId}`
+        getBackendUrl(`/projects/${projectId}/areas/${projectAreaId}`)
       );
 
       // Refresh the page or refetch data
@@ -42,9 +43,8 @@ export default function DeleteAreaButton({
     <button
       onClick={handleDelete}
       disabled={loading}
-      className={`hover:cursor-pointer flex items-center gap-1 text-red-500 hover:underline ${
-        loading ? "opacity-50 cursor-not-allowed" : ""
-      }`}
+      className={`hover:cursor-pointer flex items-center gap-1 text-red-500 hover:underline ${loading ? "opacity-50 cursor-not-allowed" : ""
+        }`}
     >
       <Trash2 size={16} />
       {loading ? "Deleting..." : "Delete"}

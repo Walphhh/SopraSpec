@@ -148,12 +148,12 @@ export default function ProjectDetailsPage() {
 
   const fields = [
     { key: "name", label: "Project Name", required: true },
-    { key: "architect", label: "Architect", required: true },
-    { key: "builder", label: "Builder", required: true },
-    { key: "installer", label: "Installer", required: true },
-    { key: "consultant", label: "Consultant", required: true },
+    { key: "architect", label: "Architect", required: false },
+    { key: "builder", label: "Builder", required: false },
+    { key: "installer", label: "Installer", required: false },
+    { key: "consultant", label: "Consultant", required: false },
     { key: "preparedBy", label: "Prepared by", required: true },
-    { key: "location", label: "Location", required: true },
+    { key: "location", label: "Location", required: false },
     { key: "date", label: "Date", required: true },
     { key: "notes", label: "Notes", required: false },
   ] as const;
@@ -212,12 +212,14 @@ export default function ProjectDetailsPage() {
       <div className="space-y-4">
         {fields.map((field) => {
           const isError = missingFields.includes(field.key);
+          const isRequired = field.required && isError; // show * only if missing
+
           return (
             <div key={field.key} className="flex items-center space-x-4">
               <label className="w-40 font-semibold text-[#0072CE] text-left">
                 {field.label}{" "}
                 {field.required ? (
-                  <span className="text-red-500">*</span>
+                  <span className="text-red-500"></span>
                 ) : (
                   <span className="text-[#7C878E]">(optional)</span>
                 )}
@@ -255,7 +257,7 @@ export default function ProjectDetailsPage() {
 
         <div className="flex items-center space-x-4">
           <label className="w-40 font-semibold text-[#0072CE] text-left">
-            Thumbnail (optional):
+            Thumbnail
           </label>
 
           <input
