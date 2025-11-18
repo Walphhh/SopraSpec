@@ -3,6 +3,7 @@
 import axios from "axios";
 import { FileDown } from "lucide-react";
 import { useState } from "react";
+import { getBackendUrl } from "@/utils/get-backend-url";
 
 export default function DownloadAreaSpecButton({
   projectId,
@@ -17,9 +18,9 @@ export default function DownloadAreaSpecButton({
     try {
       setLoading(true);
       const res = await axios.post(
-        `http://localhost:5000/api/system-stacks/projects/${projectId}/projectAreas/${projectAreaId}/generate-pdf`,
+        getBackendUrl(`/system-stacks/projects/${projectId}/projectAreas/${projectAreaId}/generate-pdf`),
         {},
-        { responseType: "blob" } // 👈 expects a file
+        { responseType: "blob" } 
       );
 
       const blob = new Blob([res.data], { type: "application/pdf" });
@@ -44,9 +45,8 @@ export default function DownloadAreaSpecButton({
     <button
       onClick={handleDownloadAreaSpec}
       disabled={loading}
-      className={`hover:cursor-pointer flex items-center gap-1 text-[#0072CE] hover:underline ${
-        loading ? "opacity-50 cursor-not-allowed" : ""
-      }`}
+      className={`hover:cursor-pointer flex items-center gap-1 text-[#0072CE] hover:underline ${loading ? "opacity-50 cursor-not-allowed" : ""
+        }`}
     >
       <FileDown size={16} />
       {loading ? "Generating..." : "Download"}

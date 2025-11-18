@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Upload, Pencil } from "lucide-react";
+import { getBackendUrl } from "@/utils/get-backend-url";
 
 type Area = {
   id: string;
@@ -97,7 +98,7 @@ export default function AreaDetailsPage() {
       console.log("Saving Area:", payload);
 
       const res = await axios.post(
-        `http://localhost:5000/api/projects/${projectId}/areas`,
+        getBackendUrl(`/projects/${projectId}/areas`),
         payload
       );
 
@@ -123,7 +124,7 @@ export default function AreaDetailsPage() {
             return (
               <div key={field.key} className="flex items-center space-x-4">
                 <label className="w-40 font-semibold text-[#0072CE] text-left">
-                  {field.label} <span className="text-red-500">*</span>
+                  {field.label} <span className="text-red-500"></span>
                 </label>
 
                 <div className="relative flex-1">
@@ -153,7 +154,7 @@ export default function AreaDetailsPage() {
               <label className="w-40 font-semibold text-[#0072CE] text-left">
                 {field.label}{" "}
                 {field.required ? (
-                  <span className="text-red-500">*</span>
+                  <span className="text-red-500"></span>
                 ) : (
                   <span className="text-[#7C878E]">(optional)</span>
                 )}

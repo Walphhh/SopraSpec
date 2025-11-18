@@ -3,6 +3,7 @@
 import axios from "axios";
 import { FileDown } from "lucide-react";
 import { useState } from "react";
+import { getBackendUrl } from "@/utils/get-backend-url";
 
 export default function DownloadFullSpecButton({
   projectId,
@@ -15,9 +16,9 @@ export default function DownloadFullSpecButton({
     try {
       setLoading(true);
       const res = await axios.post(
-        `http://localhost:5000/api/system-stacks/projects/${projectId}/generate-pdf`,
+        getBackendUrl(`/system-stacks/projects/${projectId}/generate-pdf`),
         {},
-        { responseType: "blob" } // 👈 expect file
+        { responseType: "blob" } 
       );
 
       // create blob url
@@ -45,9 +46,8 @@ export default function DownloadFullSpecButton({
     <button
       onClick={handleDownloadFullSpec}
       disabled={loading}
-      className={`hover:cursor-pointer inline-flex items-center gap-2 rounded border border-[#0072CE] px-4 py-2 text-[#0072CE] transition-colors hover:bg-[#0072CE] hover:text-white ${
-        loading ? "opacity-50 cursor-not-allowed" : ""
-      }`}
+      className={`hover:cursor-pointer inline-flex items-center gap-2 rounded border border-[#0072CE] px-4 py-2 text-[#0072CE] transition-colors hover:bg-[#0072CE] hover:text-white ${loading ? "opacity-50 cursor-not-allowed" : ""
+        }`}
     >
       <FileDown size={18} />
       {loading ? "Generating..." : "Download Full Project Spec"}
