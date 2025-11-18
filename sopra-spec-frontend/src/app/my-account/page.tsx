@@ -74,7 +74,7 @@ export default function MyAccountPage() {
               <label className="w-40 font-semibold text-[#0072CE] text-left">
                 {f.label}{" "}
                 {f.required ? (
-                  <span className="text-red-500">*</span>
+                  <span className="text-red-500"></span>
                 ) : (
                   "(optional)"
                 )}

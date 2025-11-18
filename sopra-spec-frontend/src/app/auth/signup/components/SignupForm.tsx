@@ -112,14 +112,15 @@ export default function SignupForm() {
         <div className="h-px flex-1 bg-[#C9D1D8]" />
       </div>
 
-      <p className="text-center text-[#8C99A5]">Already have an account?</p>
-
-      <Link
-        href="/login"
-        className="mx-auto block w-40 rounded-lg bg-[#76828B] py-2 text-center text-white hover:opacity-90"
-      >
-        Log In
-      </Link>
+      <div className="flex flex-col items-center gap-2 mt-4">
+        <p className="text-[#8C99A5]">Already have an account?</p>
+        <Link
+          href="/auth/login"
+          className="w-40 rounded-lg bg-[#76828B] py-2 text-center text-white hover:opacity-90"
+        >
+          Log In
+        </Link>
+      </div>
     </form>
   );
 }

@@ -218,8 +218,10 @@ export default function ProjectDetailsPage() {
             <div key={field.key} className="flex items-center space-x-4">
               <label className="w-40 font-semibold text-[#0072CE] text-left">
                 {field.label}{" "}
-                {isRequired && (
-                  <span className="text-red-500">*</span>
+                {field.required ? (
+                  <span className="text-red-500"></span>
+                ) : (
+                  <span className="text-[#7C878E]">(optional)</span>
                 )}
               </label>
               <div className="relative flex-1">

@@ -96,7 +96,7 @@ export default function HomePage() {
 
           {/* 3. Welcoming text */}
           <h1 className="text-2xl font-bold mb-2">Welcome</h1>
-          <p className="text-gray-600 mb-6 text-lg">
+          <p className="text-gray-500 mb-6 text-lg ml-5">
             Please log in to manage your projects
           </p>
 
@@ -109,7 +109,7 @@ export default function HomePage() {
           </Link>
           
           {/* 5. Sign up link added back */}
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-gray-500 ml-15">
             Don&apos;t have an account?{" "}
             <Link href="/auth/signup" className="text-[#0072CE] hover:underline">
               Sign up
