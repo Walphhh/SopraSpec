@@ -10,7 +10,12 @@ const app = express();
 // Middleware to log request
 app.use(morgan("dev"));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"], // your frontend
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use("/api/auth", authRouter);

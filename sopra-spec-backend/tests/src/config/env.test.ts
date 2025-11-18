@@ -4,6 +4,11 @@ import dotenv from "dotenv";
 describe("getEnvVar", () => {
   beforeAll(() => {
     dotenv.config();
+    jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    (console.error as jest.Mock).mockRestore();
   });
 
   it("Should return a string if a valid environment variable exists", () => {

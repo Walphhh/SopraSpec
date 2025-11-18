@@ -14,6 +14,21 @@ export default async function SpecLayout({
   const routeParams = await params;
   const { id, areaId, area } = routeParams;
 
+  if (id === "new") {
+    return (
+      <div className="p-4 space-y-4">
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-2 self-start rounded border border-[#0072CE] px-4 py-2 text-[#0072CE] transition-colors hover:bg-[#0072CE] hover:text-white"
+        >
+          <span aria-hidden>&larr;</span>
+          Back to Projects
+        </Link>
+        <div>{children}</div>
+      </div>
+    );
+  }
+
   const projectDetail = await fetchProjectById(id);
 
   if (!projectDetail) {

@@ -1,15 +1,141 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import OptionCard from "@/components/OptionCard";
 import { useSystemWizard } from "@/lib/hooks/useSystemWizard";
-import { Divide } from "lucide-react";
+import Link from "next/link";
+import type { Building3DProps } from "../[distributor]/components/Building3D";
+
+const Building3D = dynamic<Building3DProps>(
+  () => import("../[distributor]/components/Building3D"),
+  { ssr: false, loading: () => null }
+);
+
+const formatDisplayText = (value: unknown): string => {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  const stringValue = String(value);
+  if (!stringValue) return "";
+
+  const normalised = stringValue.replace(/[_\s]+/g, " ").trim();
+  return normalised
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const SUPPORTED_AREA_TYPES = new Set([
+  "roof",
+  "wall",
+  "foundation",
+  "civil_work",
+  "internal_wet_area",
+]);
+
+const normaliseAreaType = (value: string): string => {
+  const normalised = value
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/-/g, "_")
+    .toLowerCase();
+  if (normalised === "civil_works") return "civil_work";
+  if (normalised === "internalwetarea") return "internal_wet_area";
+  return normalised;
+};
+
+const FIELD_LABELS: Record<string, string> = {
+  area_type: "Area",
+  distributor: "Distributor",
+  roof_subtype: "Roof subtype",
+  foundation_subtype: "Foundation subtype",
+  civil_work_subtype: "Civil work subtype",
+  substrate: "Substrate",
+  material: "Material",
+  insulated: "Insulated",
+  exposure: "Exposure",
+  attachment: "Attachment",
+};
 
 export default function SystemWizard({ projectId }: { projectId?: string }) {
   const wizard = useSystemWizard();
+  const areaSelectionActive = wizard.currentStep === "area_type";
+
+  const buildingAreaOptions =
+    areaSelectionActive && wizard.options.length > 0
+      ? wizard.options
+          .map((opt) => {
+            const raw =
+              typeof opt.value === "string"
+                ? opt.value
+                : typeof opt.value === "number"
+                ? String(opt.value)
+                : String(opt.value ?? "");
+            const normalised = normaliseAreaType(raw);
+            if (!raw || !SUPPORTED_AREA_TYPES.has(normalised)) {
+              return null;
+            }
+            return { raw, normalised };
+          })
+          .filter(
+            (entry): entry is { raw: string; normalised: string } =>
+              entry !== null
+          )
+      : undefined;
+
+  const buildingAllowedAreas = buildingAreaOptions
+    ? Array.from(new Set(buildingAreaOptions.map((entry) => entry.normalised)))
+    : undefined;
+  const areaSelectionMap = buildingAreaOptions
+    ? new Map(buildingAreaOptions.map((entry) => [entry.normalised, entry.raw]))
+    : undefined;
+  const selectionChips = wizard.orderedKeys
+    .map((key) => {
+      const rawValue = wizard.selections[key as keyof typeof wizard.selections];
+      if (
+        rawValue === undefined ||
+        rawValue === null ||
+        (typeof rawValue === "string" && rawValue.trim().length === 0)
+      ) {
+        return null;
+      }
+      return {
+        key,
+        label: FIELD_LABELS[key] ?? formatDisplayText(key),
+        value: formatDisplayText(rawValue),
+        isCurrent: key === wizard.currentStep,
+      };
+    })
+    .filter(
+      (
+        chip
+      ): chip is {
+        key: string;
+        label: string;
+        value: string;
+        isCurrent: boolean;
+      } => Boolean(chip)
+    );
 
   return (
     <div className="mt-6 space-y-6">
       <h3 className="text-xl font-semibold text-[#0072CE]">System Selection</h3>
+
+      {selectionChips.length > 0 && (
+        <div className="flex flex-wrap gap-3 text-sm text-[#7C878E]">
+          {selectionChips.map((chip) => (
+            <span
+              key={chip.key}
+              className={`rounded-full px-3 py-1 font-medium ${
+                chip.isCurrent
+                  ? "bg-[#0072CE] text-white"
+                  : "bg-[#E2E8F0] text-[#0072CE]"
+              }`}
+            >
+              {chip.label}: {chip.value}
+            </span>
+          ))}
+        </div>
+      )}
 
       {wizard.error && (
         <div className="rounded border border-red-200 bg-red-50 p-3 text-red-700">
@@ -22,14 +148,14 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
       )}
 
       {wizard.currentStep && !wizard.finished && (
-        <div className="space-y-4">
-          <div className="flex items-center p-10 justify-between">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between rounded-xl bg-white p-8 ">
             <div>
               <div className="text-sm text-[#7C878E]">
-                Current Step: {wizard.currentStep}
+                Current Step: {formatDisplayText(wizard.currentStep)}
               </div>
               <div className="text-lg text-[#1E293B] font-medium">
-                Select {wizard.currentStep.replace(/_/g, " ")}
+                Select {formatDisplayText(wizard.currentStep)}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -42,31 +168,66 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
             </div>
           </div>
 
-          <div
-            className={`
-    grid gap-4 justify-center place-items-center
-    ${wizard.options.length === 1 ? "grid-cols-1" : ""}
-    ${wizard.options.length === 2 ? "grid-cols-2" : ""}
-    ${wizard.options.length >= 3 ? "grid-cols-3" : ""}
-  `}
-          >
-            {wizard.options?.map((opt, idx) => (
-              <OptionCard
-                key={`${wizard.currentStep}-${idx}`}
-                title={String(opt.label ?? opt.value)}
-                textOnly
-                width={320}
-                onClick={() => wizard.setSelectionForActive(opt.value)}
-                selected={
-                  String(
-                    wizard.selections[
-                      wizard.currentStep as keyof typeof wizard.selections
-                    ]
-                  ) === String(opt.value)
-                }
-              />
-            ))}
-          </div>
+          {areaSelectionActive && (
+            <div className="w-full space-y-6">
+              <div className="py-8">
+                <Building3D
+                  distributor={String(wizard.selections.distributor ?? "")}
+                  allowedAreas={buildingAllowedAreas}
+                  onSelectArea={(areaType) => {
+                    const rawValue =
+                      areaSelectionMap?.get(areaType) ?? areaType;
+                    void wizard.setSelectionForActive(rawValue);
+                  }}
+                  width="100%"
+                  height={770}
+                />
+              </div>
+            </div>
+          )}
+
+          {!areaSelectionActive && (
+            <div
+              className={`
+      grid gap-4 justify-center place-items-center
+      ${wizard.options.length === 1 ? "grid-cols-1" : ""}
+      ${wizard.options.length === 2 ? "grid-cols-2" : ""}
+      ${wizard.options.length >= 3 ? "grid-cols-3" : ""}
+    `}
+            >
+              {wizard.options?.map((opt, idx) => (
+                <OptionCard
+                  key={`${wizard.currentStep}-${idx}`}
+                  title={
+                    typeof opt.label === "string" && opt.label.trim().length > 0
+                      ? opt.label
+                      : formatDisplayText(opt.label ?? opt.value)
+                  }
+                  textOnly
+                  width={320}
+                  onClick={() => wizard.setSelectionForActive(opt.value)}
+                  selected={
+                    String(
+                      wizard.selections[
+                        wizard.currentStep as keyof typeof wizard.selections
+                      ]
+                    ) === String(opt.value)
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {wizard.currentStep === "distributor" &&
+            wizard.selections.area_type && (
+              <div className="text-center text-[#7C878E]">
+                Selected area:&nbsp;
+                <span className="font-semibold text-[#0072CE]">
+                  {formatDisplayText(wizard.selections.area_type)}
+                </span>
+                . Choose a distributor to continue.
+              </div>
+            )}
 
           {(!wizard.options || wizard.options.length === 0) && (
             <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
@@ -159,11 +320,15 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         <div className="text-sm font-semibold text-[#1E293B]">
                           Combination {combo.combination}
                         </div>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#475569]">
+                        <ul className="mt-2 space-y-1 pl-5 text-sm text-[#475569] list-none">
                           {combo.products.map((product, idx) => {
-                            const label = product.layer
-                              ? `${product.layer}: ${product.name}`
-                              : product.name;
+                            const layerLabel = product.layer
+                              ? formatDisplayText(product.layer)
+                              : "";
+                            const nameLabel = formatDisplayText(product.name);
+                            const label = layerLabel
+                              ? `${layerLabel}: ${nameLabel}`
+                              : nameLabel;
                             return (
                               <li
                                 key={
@@ -176,14 +341,20 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                             );
                           })}
                         </ul>
-                        <button
-                          className="bg-blue-300 p-3 rounded-xl hover:cursor-pointer hover:opacity-90"
-                          onClick={() => {
-                            console.log(combo.products);
-                          }}
-                        >
-                          Add to Project
-                        </button>
+                        {projectId && (
+                          <Link
+                            href={`/projects/${projectId}/areas/new?stackId=${rec.id}&combination=${combo.combination}&areaType=${wizard.selections.area_type}`}
+                          >
+                            <button
+                              className={`bg-blue-300 p-3 rounded-xl text-black hover:cursor-pointer hover:opacity-85`}
+                              onClick={() => {
+                                console.log(combo.products);
+                              }}
+                            >
+                              Add to Project
+                            </button>
+                          </Link>
+                        )}
                       </div>
                     ));
                   })()}
@@ -233,15 +404,6 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                       )}
                     </div>
                   </div>
-                  {projectId && (
-                    <button
-                      className="rounded bg-[#0072CE] text-white px-4 py-2 opacity-70 cursor-not-allowed"
-                      disabled
-                      title="Save to Project (coming soon)"
-                    >
-                      Save to Project
-                    </button>
-                  )}
                 </div>
                 <div className="space-y-2">
                   {(() => {
@@ -276,9 +438,13 @@ export default function SystemWizard({ projectId }: { projectId?: string }) {
                         </div>
                         <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-[#475569]">
                           {combo.products.map((product, idx) => {
-                            const label = product.layer
-                              ? `${product.layer}: ${product.name}`
-                              : product.name;
+                            const layerLabel = product.layer
+                              ? formatDisplayText(product.layer)
+                              : "";
+                            const nameLabel = formatDisplayText(product.name);
+                            const label = layerLabel
+                              ? `${layerLabel}: ${nameLabel}`
+                              : nameLabel;
                             return (
                               <li
                                 key={

@@ -1,17 +1,20 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Upload, Pencil } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 
 import type { Project } from "@/utils/types";
 import { useProjects } from "@/features/projects/hooks/useProjects";
+import { useAuth } from "@/utils/auth-provider";
+import { getBackendUrl } from "@/utils/get-backend-url";
+import axios from "axios";
 
 export default function ProjectDetailsPage() {
   const router = useRouter();
   const params = useParams();
-  const { get } = useProjects();
+  const { user } = useAuth();
+  const { get, create } = useProjects();
 
   const projectId = useMemo(() => {
     if (Array.isArray(params?.id)) return params.id[0];
@@ -21,7 +24,7 @@ export default function ProjectDetailsPage() {
   const blankProject: Project = useMemo(
     () => ({
       id: "",
-      ownerId: "",
+      ownerId: user?.id ?? "",
       name: "",
       architect: "",
       builder: "",
@@ -32,9 +35,8 @@ export default function ProjectDetailsPage() {
       date: "",
       notes: "",
       thumbnail: "",
-      warranties: [],
     }),
-    []
+    [user?.id]
   );
 
   const [project, setProject] = useState<Project | null>(null);
@@ -43,42 +45,106 @@ export default function ProjectDetailsPage() {
   const [error, setError] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const creationPromiseRef = useRef<Promise<Project> | null>(null);
 
   useEffect(() => {
     if (!projectId) return;
 
-    if (projectId === "new") {
-      setProject(blankProject);
-      setForm(blankProject);
-      return;
-    }
-
     let ignore = false;
-    get(projectId)
-      .then((detail) => {
+
+    const loadProject = async () => {
+      if (projectId === "new") {
+        if (!user?.id) {
+          setError("You must be logged in to create a project.");
+          setIsLoading(false);
+          return;
+        }
+
+        setIsLoading(true);
+        setIsModified(false);
+        setMissingFields([]);
+        setError("");
+
+        try {
+          if (!creationPromiseRef.current) {
+            creationPromiseRef.current = create({ ownerId: user.id });
+          }
+
+          const created = await creationPromiseRef.current;
+          if (ignore) return;
+          setProject(created);
+          setForm(created);
+          setIsLoading(false);
+          setIsModified(false);
+          setMissingFields([]);
+          router.replace(`/projects/${created.id}/project-details`);
+          creationPromiseRef.current = null;
+        } catch (creationError: any) {
+          if (ignore) return;
+          console.error(creationError);
+          setError(
+            creationError?.response?.data?.error ?? "Failed to create project."
+          );
+          setIsLoading(false);
+          creationPromiseRef.current = null;
+        }
+        return;
+      }
+
+      setIsLoading(true);
+      setError("");
+      try {
+        creationPromiseRef.current = null;
+        const detail = await get(projectId);
         if (ignore) return;
         if (!detail) {
           setProject(blankProject);
           setForm(blankProject);
-          return;
+        } else {
+          const { areas: _areas, ...projectData } = detail;
+          setProject(projectData);
+          setForm(projectData);
         }
-        const { areas: _areas, ...projectData } = detail;
-        setProject(projectData);
-        setForm(projectData);
-      })
-      .catch(() => {
+        setIsModified(false);
+        setMissingFields([]);
+      } catch (fetchError) {
+        if (ignore) return;
+        console.error(fetchError);
+        setError("Failed to load project.");
+        setProject(blankProject);
+        setForm(blankProject);
+      } finally {
         if (!ignore) {
-          setProject(blankProject);
-          setForm(blankProject);
+          setIsLoading(false);
         }
-      });
+      }
+    };
+
+    loadProject();
 
     return () => {
       ignore = true;
     };
-  }, [projectId, get, blankProject]);
+  }, [projectId, blankProject, create, get, router, user?.id]);
 
-  if (!project) return <div className="p-6">Loading...</div>;
+  if (!project || projectId === "new") {
+    return (
+      <div className="p-6">
+        {error ? (
+          <p className="text-red-500 font-semibold">{error}</p>
+        ) : (
+          <div className="text-[#7C878E]">
+            {projectId === "new"
+              ? isLoading
+                ? "Creating project..."
+                : "Preparing project editor..."
+              : "Loading project..."}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const fields = [
     { key: "name", label: "Project Name", required: true },
@@ -92,14 +158,14 @@ export default function ProjectDetailsPage() {
     { key: "notes", label: "Notes", required: false },
   ] as const;
 
-  const handleChange = (key: typeof fields[number]["key"], value: string) => {
+  const handleChange = (key: (typeof fields)[number]["key"], value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setIsModified(true);
     setError("");
     setMissingFields((prev) => prev.filter((f) => f !== key));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const missing: string[] = [];
     for (const field of fields) {
       if (field.required && !form[field.key]?.toString().trim()) {
@@ -113,26 +179,29 @@ export default function ProjectDetailsPage() {
       return;
     }
 
-    const newProjectId = project.id || uuidv4();
-    const updatedProject: Project = {
-      ...project,
-      ...form,
-      id: newProjectId,
-      ownerId: project.ownerId,
-      warranties: project.warranties ?? [],
-      thumbnail: form.thumbnail ?? project.thumbnail ?? "",
-      notes: form.notes ?? project.notes ?? "",
-    };
+    if (!project?.id) {
+      setError("Project is not ready to save yet.");
+      return;
+    }
 
-    setProject(updatedProject);
-    setIsModified(false);
-    setError("");
-    setMissingFields([]);
+    try {
+      const { id: _id, ...updates } = { ...form, ownerId: project.ownerId };
 
-    alert("Project details saved! (persisting to backend not yet implemented)");
+      await axios.patch(getBackendUrl(`/projects/${project.id}`), updates);
 
-    if (!project.id) {
-      router.replace(`/projects/${newProjectId}/project-details`);
+      const detail = await get(project.id);
+      if (detail) {
+        const { areas: _areas, ...projectData } = detail;
+        setProject(projectData);
+        setForm(projectData);
+      }
+
+      setIsModified(false);
+      setError("");
+      setMissingFields([]);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.error || "Failed to update project.");
     }
   };
 
@@ -157,21 +226,27 @@ export default function ProjectDetailsPage() {
                 <input
                   type="text"
                   value={form[field.key] ?? ""}
-                  placeholder={projectId === "new" ? `Please enter ${field.label}` : ""}
+                  placeholder={
+                    projectId === "new" ? `Please enter ${field.label}` : ""
+                  }
                   onChange={(e) => handleChange(field.key, e.target.value)}
                   onFocus={() => setFocusedField(field.key)}
                   onBlur={() => setFocusedField(null)}
-                  className={`w-full border-2 rounded p-2 pr-10 outline-none bg-transparent transition-colors ${isError
-                    ? "border-red-500 text-red-500"
-                    : "border-[#7C878E] text-[#7C878E] focus:border-[#0072CE] focus:text-[#0072CE]"}`}
+                  className={`w-full border-2 rounded p-2 pr-10 outline-none bg-transparent transition-colors ${
+                    isError
+                      ? "border-red-500 text-red-500"
+                      : "border-[#7C878E] text-[#7C878E] focus:border-[#0072CE] focus:text-[#0072CE]"
+                  }`}
                 />
                 <Pencil
                   size={18}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${focusedField === field.key
-                    ? "text-[#0072CE]"
-                    : isError
+                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
+                    focusedField === field.key
+                      ? "text-[#0072CE]"
+                      : isError
                       ? "text-red-500"
-                      : "text-[#7C878E]"}`}
+                      : "text-[#7C878E]"
+                  }`}
                 />
               </div>
             </div>
@@ -216,8 +291,11 @@ export default function ProjectDetailsPage() {
         {error && <p className="text-red-500 font-semibold">{error}</p>}
 
         <button
-          className={`px-6 py-3 font-bold rounded text-white ${isModified ? "bg-[#0072CE] hover:bg-[#005fa8]" : "bg-gray-400 cursor-not-allowed"
-            }`}
+          className={`px-6 py-3 font-bold rounded text-white ${
+            isModified
+              ? "bg-[#0072CE] hover:bg-[#005fa8]"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
           disabled={!isModified}
           onClick={handleSave}
         >

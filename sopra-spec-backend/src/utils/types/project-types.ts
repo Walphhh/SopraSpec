@@ -70,7 +70,6 @@ export interface NewProject {
   date: string;
   notes?: string;
   thumbnail?: string;
-  warranties?: Warranty[];
 }
 
 export interface Project extends NewProject {
